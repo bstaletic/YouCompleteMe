@@ -35,7 +35,7 @@ import warnings
 from ycm.client.base_request import BaseRequest
 from ycm.tests import test_utils
 from ycm.youcompleteme import YouCompleteMe
-from ycmd.utils import CloseStandardStreams, WaitUntilProcessIsTerminated
+from ycm.protoycmd import CloseStandardStreams, WaitUntilProcessIsTerminated
 
 # The default options which are required for a working YouCompleteMe object.
 DEFAULT_CLIENT_OPTIONS = {

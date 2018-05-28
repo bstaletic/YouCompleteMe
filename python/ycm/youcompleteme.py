@@ -141,7 +141,7 @@ class YouCompleteMe( object ):
 
     hmac_secret = os.urandom( HMAC_SECRET_LENGTH )
     options_dict = dict( self._user_options )
-    options_dict[ 'hmac_secret' ] = utils.ToUnicode(
+    options_dict[ 'hmac_secret' ] = ToUnicode(
       base64.b64encode( hmac_secret ) )
     options_dict[ 'server_keep_logfiles' ] = self._user_options[
       'keep_logfiles' ]
@@ -150,7 +150,7 @@ class YouCompleteMe( object ):
     with NamedTemporaryFile( delete = False, mode = 'w+' ) as options_file:
       json.dump( options_dict, options_file )
 
-    server_port = utils.GetUnusedLocalhostPort()
+    server_port = GetUnusedLocalhostPort()
 
     BaseRequest.server_location = 'http://127.0.0.1:' + str( server_port )
     BaseRequest.hmac_secret = hmac_secret
@@ -174,9 +174,9 @@ class YouCompleteMe( object ):
              '--idle_suicide_seconds={0}'.format(
                 SERVER_IDLE_SUICIDE_SECONDS ) ]
 
-    self._server_stdout = utils.CreateLogfile(
+    self._server_stdout = CreateLogfile(
         SERVER_LOGFILE_FORMAT.format( port = server_port, std = 'stdout' ) )
-    self._server_stderr = utils.CreateLogfile(
+    self._server_stderr = CreateLogfile(
         SERVER_LOGFILE_FORMAT.format( port = server_port, std = 'stderr' ) )
     args.append( '--stdout={0}'.format( self._server_stdout ) )
     args.append( '--stderr={0}'.format( self._server_stderr ) )
@@ -184,13 +184,13 @@ class YouCompleteMe( object ):
     if self._user_options[ 'keep_logfiles' ]:
       args.append( '--keep_logfiles' )
 
-    self._server_popen = utils.SafePopen( args, stdin_windows = PIPE,
+    self._server_popen = SafePopen( args, stdin_windows = PIPE,
                                           stdout = PIPE, stderr = PIPE )
 
 
   def _SetUpLogging( self ):
     def FreeFileFromOtherProcesses( file_object ):
-      if utils.OnWindows():
+      if OnWindows():
         from ctypes import windll
         import msvcrt
 
@@ -199,7 +199,7 @@ class YouCompleteMe( object ):
                                               HANDLE_FLAG_INHERIT,
                                               0 )
 
-    self._client_logfile = utils.CreateLogfile( CLIENT_LOGFILE_FORMAT )
+    self._client_logfile = CreateLogfile( CLIENT_LOGFILE_FORMAT )
 
     handler = logging.FileHandler( self._client_logfile )
 
@@ -491,7 +491,7 @@ class YouCompleteMe( object ):
     logging.shutdown()
     if not self._user_options[ 'keep_logfiles' ]:
       if self._client_logfile:
-        utils.RemoveIfExists( self._client_logfile )
+        RemoveIfExists( self._client_logfile )
 
 
   def OnVimLeave( self ):
@@ -722,7 +722,7 @@ class YouCompleteMe( object ):
   def _AddTagsFilesIfNeeded( self, extra_data ):
     def GetTagFiles():
       tag_files = vim.eval( 'tagfiles()' )
-      return [ os.path.join( utils.GetCurrentDirectory(), tag_file )
+      return [ os.path.join( GetCurrentDirectory(), tag_file )
                for tag_file in tag_files ]
 
     if not self._user_options[ 'collect_identifiers_from_tags_files' ]:

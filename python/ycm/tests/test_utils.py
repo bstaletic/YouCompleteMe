@@ -34,7 +34,7 @@ import os
 import re
 import sys
 
-from ycmd.utils import GetCurrentDirectory, ToBytes, ToUnicode
+from ycm.protoycmd import GetCurrentDirectory, ToBytes, ToUnicode
 
 
 BUFNR_REGEX = re.compile( '^bufnr\\(\'(?P<buffer_filename>.+)\', ([01])\\)$' )

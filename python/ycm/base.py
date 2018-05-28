@@ -52,7 +52,7 @@ def CurrentIdentifierFinished():
   if previous_char_index < 0:
     return True
   filetype = vimsupport.CurrentFiletypes()[ 0 ]
-  regex = identifier_utils.IdentifierRegexForFiletype( filetype )
+  regex = IdentifierRegexForFiletype( filetype )
 
   for match in regex.finditer( line ):
     if match.end() == previous_char_index:
@@ -68,7 +68,7 @@ def LastEnteredCharIsIdentifierChar():
     return False
   filetype = vimsupport.CurrentFiletypes()[ 0 ]
   return (
-    identifier_utils.StartOfLongestIdentifierEndingAtIndex(
+    StartOfLongestIdentifierEndingAtIndex(
         line, current_column, filetype ) != current_column )
 
 
