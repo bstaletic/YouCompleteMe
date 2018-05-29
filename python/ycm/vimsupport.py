@@ -530,18 +530,14 @@ def JumpToLocation( filename, line, column, modifiers, command ):
     # location, not to the start of the newly opened file.
     # Sadly this fails on random occasions and the undesired jump remains in the
     # jumplist.
-<<<<<<< HEAD
     if command == 'split-or-existing-window':
       if 'tab' in modifiers:
         if TryJumpLocationInTabs( filename, line, column ):
           return
       elif TryJumpLocationInTab( vim.current.tabpage, filename, line, column ):
-=======
-    user_command = Value( 'goto_buffer_command' )
 
     if user_command == 'new-or-existing-tab':
       if TryJumpLocationInOpenedTab( filename, line, column ):
->>>>>>> Decouple YCM from ycmd - step 1
         return
       command = 'split'
 
