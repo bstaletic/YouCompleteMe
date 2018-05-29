@@ -9,6 +9,7 @@ import sys
 
 DIR_OF_THIS_SCRIPT = p.dirname( p.abspath( __file__ ) )
 DIR_OF_THIRD_PARTY = p.join( DIR_OF_THIS_SCRIPT, 'third_party' )
+DIR_OF_YCMD_THIRD_PARTY = p.join( DIR_OF_THIRD_PARTY, 'ycmd', 'third_party' )
 
 # We don't include python-future (not to be confused with pythonfutures) because
 # it needs to be inserted in sys.path AFTER the standard library imports but we
