@@ -54,7 +54,7 @@ let s:pollers = {
 "  - better Windows support (e.g. temporary paths are not returned in all
 "    lowercase);
 "  - Python 2 support will eventually be dropped.
-function! s:UsingPython3()
+function! s:UsingPython3() abort
   if has('python3')
     return 1
   endif
@@ -67,7 +67,7 @@ let s:python_until_eof = s:using_python3 ? "python3 << EOF" : "python << EOF"
 let s:python_command = s:using_python3 ? "py3 " : "py "
 
 
-function! s:Pyeval( eval_string )
+function! s:Pyeval( eval_string ) abort
   if s:using_python3
     return py3eval( a:eval_string )
   endif
@@ -75,7 +75,7 @@ function! s:Pyeval( eval_string )
 endfunction
 
 
-function! s:StartMessagePoll()
+function! s:StartMessagePoll() abort
   if s:pollers.receive_messages.id < 0
     let s:pollers.receive_messages.id = timer_start(
           \ s:pollers.receive_messages.wait_milliseconds,
@@ -84,7 +84,7 @@ function! s:StartMessagePoll()
 endfunction
 
 
-function! s:ReceiveMessages( timer_id )
+function! s:ReceiveMessages( timer_id ) abort
   let poll_again = s:Pyeval( 'ycm_state.OnPeriodicTick()' )
 
   if poll_again
@@ -98,7 +98,7 @@ function! s:ReceiveMessages( timer_id )
 endfunction
 
 
-function! s:SetUpOptions()
+function! s:SetUpOptions() abort
   call s:SetUpCommands()
   call s:SetUpCpoptions()
   call s:SetUpCompleteopt()
@@ -113,7 +113,7 @@ function! s:SetUpOptions()
 endfunction
 
 
-function! youcompleteme#Enable()
+function! youcompleteme#Enable() abort
   call s:SetUpBackwardsCompatibility()
 
   if !s:SetUpPython()
@@ -150,7 +150,7 @@ function! youcompleteme#Enable()
 endfunction
 
 
-function! youcompleteme#EnableCursorMovedAutocommands()
+function! youcompleteme#EnableCursorMovedAutocommands() abort
   augroup ycmcompletemecursormove
     autocmd!
     autocmd CursorMoved * call s:OnCursorMovedNormalMode()
@@ -164,22 +164,22 @@ function! youcompleteme#EnableCursorMovedAutocommands()
 endfunction
 
 
-function! youcompleteme#DisableCursorMovedAutocommands()
+function! youcompleteme#DisableCursorMovedAutocommands() abort
   autocmd! ycmcompletemecursormove
 endfunction
 
 
-function! youcompleteme#GetErrorCount()
+function! youcompleteme#GetErrorCount() abort
   return s:Pyeval( 'ycm_state.GetErrorCount()' )
 endfunction
 
 
-function! youcompleteme#GetWarningCount()
+function! youcompleteme#GetWarningCount() abort
   return s:Pyeval( 'ycm_state.GetWarningCount()' )
 endfunction
 
 
-function! s:SetUpPython() abort
+function! s:SetUpPython() abort abort
   exec s:python_until_eof
 from __future__ import unicode_literals
 from __future__ import print_function
@@ -225,7 +225,7 @@ EOF
 endfunction
 
 
-function! s:SetUpKeyMappings()
+function! s:SetUpKeyMappings() abort
   " The g:ycm_key_select_completion and g:ycm_key_previous_completion used to
   " exist and are now here purely for the sake of backwards compatibility; we
   " don't want to break users if we can avoid it.
@@ -290,7 +290,7 @@ function! s:SetUpKeyMappings()
 endfunction
 
 
-function! s:SetUpSigns()
+function! s:SetUpSigns() abort
   " We try to ensure backwards compatibility with Syntastic if the user has
   " already defined styling for Syntastic highlight groups.
 
@@ -325,7 +325,7 @@ function! s:SetUpSigns()
 endfunction
 
 
-function! s:SetUpSyntaxHighlighting()
+function! s:SetUpSyntaxHighlighting() abort
   " We try to ensure backwards compatibility with Syntastic if the user has
   " already defined styling for Syntastic highlight groups.
 
@@ -347,7 +347,7 @@ function! s:SetUpSyntaxHighlighting()
 endfunction
 
 
-function! s:SetUpBackwardsCompatibility()
+function! s:SetUpBackwardsCompatibility() abort
   let complete_in_comments_and_strings =
         \ get( g:, 'ycm_complete_in_comments_and_strings', 0 )
 
@@ -364,7 +364,7 @@ endfunction
 
 
 " Needed so that YCM is used instead of Syntastic
-function! s:TurnOffSyntasticForCFamily()
+function! s:TurnOffSyntasticForCFamily() abort
   let g:syntastic_cpp_checkers = []
   let g:syntastic_c_checkers = []
   let g:syntastic_objc_checkers = []
@@ -373,7 +373,7 @@ function! s:TurnOffSyntasticForCFamily()
 endfunction
 
 
-function! s:DisableOnLargeFile( buffer )
+function! s:DisableOnLargeFile( buffer ) abort
   if exists( 'b:ycm_largefile' )
     return b:ycm_largefile
   endif
@@ -390,7 +390,7 @@ function! s:DisableOnLargeFile( buffer )
 endfunction
 
 
-function! s:AllowedToCompleteInBuffer( buffer )
+function! s:AllowedToCompleteInBuffer( buffer ) abort
   let buffer_filetype = getbufvar( a:buffer, '&filetype' )
 
   if empty( buffer_filetype ) ||
@@ -415,12 +415,12 @@ function! s:AllowedToCompleteInBuffer( buffer )
 endfunction
 
 
-function! s:AllowedToCompleteInCurrentBuffer()
+function! s:AllowedToCompleteInCurrentBuffer() abort
   return s:AllowedToCompleteInBuffer( '%' )
 endfunction
 
 
-function! s:VisitedBufferRequiresReparse()
+function! s:VisitedBufferRequiresReparse() abort
   if bufnr( '%' ) ==# s:previous_allowed_buffer_number
     return 0
   endif
@@ -429,7 +429,7 @@ function! s:VisitedBufferRequiresReparse()
 endfunction
 
 
-function! s:SetUpCpoptions()
+function! s:SetUpCpoptions() abort
   " Without this flag in cpoptions, critical YCM mappings do not work. There's
   " no way to not have this and have YCM working, so force the flag.
   set cpoptions+=B
@@ -440,7 +440,7 @@ function! s:SetUpCpoptions()
 endfunction
 
 
-function! s:SetUpCompleteopt()
+function! s:SetUpCompleteopt() abort
   " Some plugins (I'm looking at you, vim-notes) change completeopt by for
   " instance adding 'longest'. This breaks YCM. So we force our settings.
   " There's no two ways about this: if you want to use YCM then you have to
@@ -464,22 +464,22 @@ function! s:SetUpCompleteopt()
 endfunction
 
 
-function! s:SetCompleteFunc()
+function! s:SetCompleteFunc() abort
   let &completefunc = 'youcompleteme#CompleteFunc'
 endfunction
 
 
-function! s:OnVimLeave()
+function! s:OnVimLeave() abort
   exec s:python_command "ycm_state.OnVimLeave()"
 endfunction
 
 
-function! s:OnCompleteDone()
+function! s:OnCompleteDone() abort
   exec s:python_command "ycm_state.OnCompleteDone()"
 endfunction
 
 
-function! s:OnFileTypeSet()
+function! s:OnFileTypeSet() abort
   if !s:AllowedToCompleteInCurrentBuffer()
     return
   endif
@@ -493,7 +493,7 @@ function! s:OnFileTypeSet()
 endfunction
 
 
-function! s:OnBufferEnter()
+function! s:OnBufferEnter() abort
   if !s:VisitedBufferRequiresReparse()
     return
   endif
@@ -509,7 +509,7 @@ function! s:OnBufferEnter()
 endfunction
 
 
-function! s:OnBufferUnload()
+function! s:OnBufferUnload() abort
   " Expanding <abuf> returns the unloaded buffer number as a string but we want
   " it as a true number for the getbufvar function.
   let buffer_number = str2nr( expand( '<abuf>' ) )
@@ -521,12 +521,12 @@ function! s:OnBufferUnload()
 endfunction
 
 
-function! s:UpdateMatches()
+function! s:UpdateMatches() abort
   exec s:python_command "ycm_state.UpdateMatches()"
 endfunction
 
 
-function! s:PollServerReady( timer_id )
+function! s:PollServerReady( timer_id ) abort
   if !s:Pyeval( 'ycm_state.IsServerAlive()' )
     exec s:python_command "ycm_state.NotifyUserIfServerCrashed()"
     " Server crashed. Don't poll it again.
@@ -544,7 +544,7 @@ function! s:PollServerReady( timer_id )
 endfunction
 
 
-function! s:OnFileReadyToParse( ... )
+function! s:OnFileReadyToParse( ... ) abort
   " Accepts an optional parameter that is either 0 or 1. If 1, send a
   " FileReadyToParse event notification, whether the buffer has changed or not;
   " effectively forcing a parse of the buffer. Default is 0.
@@ -563,7 +563,7 @@ function! s:OnFileReadyToParse( ... )
 endfunction
 
 
-function! s:PollFileParseResponse( ... )
+function! s:PollFileParseResponse( ... ) abort
   if !s:Pyeval( "ycm_state.FileParseRequestReady()" )
     let s:pollers.file_parse_response.id = timer_start(
           \ s:pollers.file_parse_response.wait_milliseconds,
@@ -578,7 +578,7 @@ function! s:PollFileParseResponse( ... )
 endfunction
 
 
-function! s:SendKeys( keys )
+function! s:SendKeys( keys ) abort
   " By default keys are added to the end of the typeahead buffer. If there are
   " already keys in the buffer, they will be processed first and may change the
   " state that our keys combination was sent for (e.g. <C-X><C-U><C-P> in normal
@@ -590,14 +590,14 @@ function! s:SendKeys( keys )
 endfunction
 
 
-function! s:CloseCompletionMenu()
+function! s:CloseCompletionMenu() abort
   if pumvisible()
     call s:SendKeys( "\<C-e>" )
   endif
 endfunction
 
 
-function! s:OnInsertChar()
+function! s:OnInsertChar() abort
   if !s:AllowedToCompleteInCurrentBuffer()
     return
   endif
@@ -607,7 +607,7 @@ function! s:OnInsertChar()
 endfunction
 
 
-function! s:OnDeleteChar( key )
+function! s:OnDeleteChar( key ) abort
   if !s:AllowedToCompleteInCurrentBuffer()
     return a:key
   endif
@@ -620,7 +620,7 @@ function! s:OnDeleteChar( key )
 endfunction
 
 
-function! s:StopCompletion( key )
+function! s:StopCompletion( key ) abort
   call timer_stop( s:pollers.completion.id )
   if pumvisible()
     let s:completion_stopped = 1
@@ -630,7 +630,7 @@ function! s:StopCompletion( key )
 endfunction
 
 
-function! s:OnCursorMovedNormalMode()
+function! s:OnCursorMovedNormalMode() abort
   if !s:AllowedToCompleteInCurrentBuffer()
     return
   endif
@@ -639,7 +639,7 @@ function! s:OnCursorMovedNormalMode()
 endfunction
 
 
-function! s:OnTextChangedNormalMode()
+function! s:OnTextChangedNormalMode() abort
   if !s:AllowedToCompleteInCurrentBuffer()
     return
   endif
@@ -648,7 +648,7 @@ function! s:OnTextChangedNormalMode()
 endfunction
 
 
-function! s:OnTextChangedInsertMode()
+function! s:OnTextChangedInsertMode() abort
   if !s:AllowedToCompleteInCurrentBuffer()
     return
   endif
@@ -685,7 +685,7 @@ function! s:OnTextChangedInsertMode()
 endfunction
 
 
-function! s:OnInsertLeave()
+function! s:OnInsertLeave() abort
   if !s:AllowedToCompleteInCurrentBuffer()
     return
   endif
@@ -703,7 +703,7 @@ function! s:OnInsertLeave()
 endfunction
 
 
-function! s:ClosePreviewWindowIfNeeded()
+function! s:ClosePreviewWindowIfNeeded() abort
   let current_buffer_name = bufname('')
 
   " We don't want to try to close the preview window in special buffers like
@@ -719,7 +719,7 @@ function! s:ClosePreviewWindowIfNeeded()
 endfunction
 
 
-function! s:IdentifierFinishedOperations()
+function! s:IdentifierFinishedOperations() abort
   if !s:Pyeval( 'base.CurrentIdentifierFinished()' )
     return
   endif
@@ -730,7 +730,7 @@ endfunction
 
 
 " Returns 1 when inside comment and 2 when inside string
-function! s:InsideCommentOrString()
+function! s:InsideCommentOrString() abort
   " Has to be col('.') -1 because col('.') doesn't exist at this point. We are
   " in insert mode when this func is called.
   let syntax_group = synIDattr(
@@ -748,7 +748,7 @@ function! s:InsideCommentOrString()
 endfunction
 
 
-function! s:InsideCommentOrStringAndShouldStop()
+function! s:InsideCommentOrStringAndShouldStop() abort
   let retval = s:InsideCommentOrString()
   let inside_comment = retval == 1
   let inside_string = retval == 2
@@ -762,12 +762,12 @@ function! s:InsideCommentOrStringAndShouldStop()
 endfunction
 
 
-function! s:OnBlankLine()
+function! s:OnBlankLine() abort
   return s:Pyeval( 'not vim.current.line or vim.current.line.isspace()' )
 endfunction
 
 
-function! s:InvokeCompletion()
+function! s:InvokeCompletion() abort
   exec s:python_command "ycm_state.SendCompletionRequest(" .
         \ "vimsupport.GetBoolValue( 's:force_semantic' ) )"
 
@@ -775,7 +775,7 @@ function! s:InvokeCompletion()
 endfunction
 
 
-function! s:InvokeSemanticCompletion()
+function! s:InvokeSemanticCompletion() abort
   if &completefunc == "youcompleteme#CompleteFunc"
     let s:force_semantic = 1
     exec s:python_command "ycm_state.SendCompletionRequest( True )"
@@ -790,7 +790,7 @@ function! s:InvokeSemanticCompletion()
 endfunction
 
 
-function! s:PollCompletion( ... )
+function! s:PollCompletion( ... ) abort
   if !s:Pyeval( 'ycm_state.CompletionRequestReady()' )
     let s:pollers.completion.id = timer_start(
           \ s:pollers.completion.wait_milliseconds,
@@ -807,7 +807,7 @@ function! s:PollCompletion( ... )
 endfunction
 
 
-function! s:Complete()
+function! s:Complete() abort
   " Do not call user's completion function if the start column is after the
   " current column or if there are no candidates. Close the completion menu
   " instead. This avoids keeping the user in completion mode.
@@ -826,7 +826,7 @@ function! s:Complete()
 endfunction
 
 
-function! youcompleteme#CompleteFunc( findstart, base )
+function! youcompleteme#CompleteFunc( findstart, base ) abort
   if a:findstart
     return s:completion.start_column - 1
   endif
@@ -834,12 +834,12 @@ function! youcompleteme#CompleteFunc( findstart, base )
 endfunction
 
 
-function! youcompleteme#ServerPid()
+function! youcompleteme#ServerPid() abort
   return s:Pyeval( 'ycm_state.ServerPid()' )
 endfunction
 
 
-function! s:SetUpCommands()
+function! s:SetUpCommands() abort
   command! YcmRestartServer call s:RestartServer()
   command! YcmDebugInfo call s:DebugInfo()
   command! -nargs=* -complete=custom,youcompleteme#LogsComplete
@@ -855,7 +855,7 @@ function! s:SetUpCommands()
 endfunction
 
 
-function! s:RestartServer()
+function! s:RestartServer() abort
   call s:SetUpOptions()
 
   exec s:python_command "ycm_state.RestartServer()"
@@ -870,7 +870,7 @@ function! s:RestartServer()
 endfunction
 
 
-function! s:DebugInfo()
+function! s:DebugInfo() abort
   echom "Printing YouCompleteMe debug information..."
   let debug_info = s:Pyeval( 'ycm_state.DebugInfo()' )
   for line in split( debug_info, "\n" )
@@ -879,17 +879,17 @@ function! s:DebugInfo()
 endfunction
 
 
-function! s:ToggleLogs(...)
+function! s:ToggleLogs(...) abort
   exec s:python_command "ycm_state.ToggleLogs( *vim.eval( 'a:000' ) )"
 endfunction
 
 
-function! youcompleteme#LogsComplete( arglead, cmdline, cursorpos )
+function! youcompleteme#LogsComplete( arglead, cmdline, cursorpos ) abort
   return join( s:Pyeval( 'list( ycm_state.GetLogfiles() )' ), "\n" )
 endfunction
 
 
-function! s:CompleterCommand( count, line1, line2, ... )
+function! s:CompleterCommand( count, line1, line2, ... ) abort
   " CompleterCommand will call the OnUserCommand function of a completer. If
   " the first arguments is of the form "ft=..." it can be used to specify the
   " completer to use (for example "ft=cpp"). Else the native filetype completer
@@ -916,12 +916,12 @@ function! s:CompleterCommand( count, line1, line2, ... )
 endfunction
 
 
-function! youcompleteme#SubCommandsComplete( arglead, cmdline, cursorpos )
+function! youcompleteme#SubCommandsComplete( arglead, cmdline, cursorpos ) abort
   return join( s:Pyeval( 'ycm_state.GetDefinedSubcommands()' ), "\n" )
 endfunction
 
 
-function! youcompleteme#OpenGoToList()
+function! youcompleteme#OpenGoToList() abort
   exec s:python_command "vimsupport.PostVimMessage(" .
         \ "'WARNING: youcompleteme#OpenGoToList function is deprecated. " .
         \ "Do NOT use it.' )"
@@ -929,17 +929,17 @@ function! youcompleteme#OpenGoToList()
 endfunction
 
 
-function! s:ShowDiagnostics()
+function! s:ShowDiagnostics() abort
   exec s:python_command "ycm_state.ShowDiagnostics()"
 endfunction
 
 
-function! s:ShowDetailedDiagnostic()
+function! s:ShowDetailedDiagnostic() abort
   exec s:python_command "ycm_state.ShowDetailedDiagnostic()"
 endfunction
 
 
-function! s:ForceCompileAndDiagnostics()
+function! s:ForceCompileAndDiagnostics() abort
   exec s:python_command "ycm_state.ForceCompileAndDiagnostics()"
 endfunction
 
