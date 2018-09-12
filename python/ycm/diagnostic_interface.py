@@ -125,6 +125,36 @@ class DiagnosticInterface( object ):
       vimsupport.ConvertDiagnosticsToQfList( self._diagnostics ) )
 
 
+  def _UpdateLineMatches( self, diags, matches_to_remove ):
+    group = ( 'YcmErrorLine' if any( _DiagnosticIsError( diag )
+                             for diag in diags ) else 'YcmWarningLine' )
+    line_number = diags[ 0 ][ 'location' ][ 'line_num' ]
+    pattern = vimsupport.GetDiagnosticMatchPattern(
+        line_number,
+        1,
+        line_number,
+        len( vimsupport.CurrentLineContents() ) + 1 )
+    match = vimsupport.DiagnosticMatch( 0, group, pattern )
+    try:
+      matches_to_remove.remove( match )
+    except ValueError:
+      vimsupport.AddDiagnosticMatch( match )
+
+
+  def _UpdateSectionMatches( self, diags, matches_to_remove ):
+    for diag in reversed( diags ):
+      group = ( 'YcmErrorSection' if _DiagnosticIsError( diag ) else
+                'YcmWarningSection' )
+
+      for pattern in _ConvertDiagnosticToMatchPatterns( diag ):
+        # The id doesn't matter for matches that we may add.
+        match = vimsupport.DiagnosticMatch( 0, group, pattern )
+        try:
+          matches_to_remove.remove( match )
+        except ValueError:
+          vimsupport.AddDiagnosticMatch( match )
+
+
   def UpdateMatches( self ):
     if not self._user_options[ 'enable_diagnostic_highlighting' ]:
       return
@@ -137,17 +167,10 @@ class DiagnosticInterface( object ):
 
         for diags in itervalues( self._line_to_diags ):
           # Insert squiggles in reverse order so that errors overlap warnings.
-          for diag in reversed( diags ):
-            group = ( 'YcmErrorSection' if _DiagnosticIsError( diag ) else
-                      'YcmWarningSection' )
+          if len(diags):
+            self._UpdateLineMatches( diags, matches_to_remove )
 
-            for pattern in _ConvertDiagnosticToMatchPatterns( diag ):
-              # The id doesn't matter for matches that we may add.
-              match = vimsupport.DiagnosticMatch( 0, group, pattern )
-              try:
-                matches_to_remove.remove( match )
-              except ValueError:
-                vimsupport.AddDiagnosticMatch( match )
+          self._UpdateSectionMatches( diags, matches_to_remove )
 
         for match in matches_to_remove:
           vimsupport.RemoveDiagnosticMatch( match )
