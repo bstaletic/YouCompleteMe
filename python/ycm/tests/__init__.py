@@ -23,8 +23,6 @@ from __future__ import absolute_import
 from builtins import *  # noqa
 
 from ycm.tests.test_utils import MockVimModule
-import sys
-__import__('pprint').pprint(sys.path)
 MockVimModule()
 
 import contextlib
