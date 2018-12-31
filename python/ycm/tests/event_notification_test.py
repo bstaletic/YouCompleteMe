@@ -35,7 +35,7 @@ import os
 from ycm.tests import ( PathToTestFile, test_utils, YouCompleteMeInstance,
                         WaitUntilReady )
 from ycm.vimsupport import SIGN_BUFFER_ID_INITIAL_VALUE
-from ycm.protoycmd.responses import ( BuildDiagnosticData, Diagnostic,
+from protoycmd.responses import ( BuildDiagnosticData, Diagnostic,
                                       Location, Range,
                                       UnknownExtraConf, ServerError )
 

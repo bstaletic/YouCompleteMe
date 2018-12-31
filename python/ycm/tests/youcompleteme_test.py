@@ -48,7 +48,7 @@ from ycm.tests import ( StopServer,
                         YouCompleteMeInstance )
 from ycm.client.base_request import _LoadExtraConfFile
 from ycm.youcompleteme import YouCompleteMe
-from ycm.protoycmd.responses import ServerError
+from protoycmd.responses import ServerError
 from ycm.tests.mock_utils import ( MockAsyncServerResponseDone,
                                    MockAsyncServerResponseInProgress,
                                    MockAsyncServerResponseException )
@@ -89,14 +89,14 @@ def YouCompleteMe_InvalidPythonInterpreterPath_test( post_vim_message ):
       StopServer( ycm )
 
 
-@patch( 'ycm.protoycmd.utils.PathToFirstExistingExecutable',
+@patch( 'protoycmd.utils.PathToFirstExistingExecutable',
         return_value = None )
 @patch( 'ycm.paths._EndsWithPython', return_value = False )
 @patch( 'ycm.vimsupport.PostVimMessage' )
 def YouCompleteMe_NoPythonInterpreterFound_test( post_vim_message, *args ):
   with UserOptions( {} ):
     try:
-      with patch( 'ycm.protoycmd.utils.ReadFile', side_effect = IOError ):
+      with patch( 'protoycmd.utils.ReadFile', side_effect = IOError ):
         ycm = YouCompleteMe()
 
       assert_that( ycm.IsServerAlive(), equal_to( False ) )
