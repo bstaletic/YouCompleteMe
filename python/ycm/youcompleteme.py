@@ -292,6 +292,8 @@ class YouCompleteMe( object ):
   def SendCompletionRequest( self, force_semantic = False ):
     request_data = BuildRequestData()
     request_data[ 'force_semantic' ] = force_semantic
+    request_data[ 'ignored_filepaths' ] = vimsupport.ToUnicode(
+        vimsupport.GetVariableValue( '&wildignore' ) )
     if not self.NativeFiletypeCompletionUsable():
       wrapped_request_data = RequestWrap( request_data )
       if self._omnicomp.ShouldUseNow( wrapped_request_data ):
