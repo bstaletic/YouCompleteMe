@@ -23,46 +23,19 @@ from __future__ import absolute_import
 from builtins import *  # noqa
 
 from future.utils import iterkeys, iteritems
-from ycm import vimsupport
 import re
 
 
-class DiagnosticFilter( object ):
-  def __init__( self, config_or_filters ):
-    if isinstance( config_or_filters, list ):
-      self._filters = config_or_filters
-
-    else:
-      self._filters = _CompileFilters( config_or_filters )
-
-
-  def IsAllowed( self, diagnostic ):
-    # NOTE: a diagnostic IsAllowed() ONLY if NO filters match it
-    for filterMatches in self._filters:
-      if filterMatches( diagnostic ):
-        return False
-
-    return True
-
-
-  def SubsetForTypes( self, filetypes ):
-    """Return a sub-filter limited to the given filetypes"""
-    # NOTE: actually, this class is already filtered
-    return self
-
-
-  @staticmethod
-  def CreateFromOptions( user_options ):
-    all_filters = user_options[ 'filter_diagnostics' ]
-    compiled_by_type = {}
-    for type_spec, filter_value in iteritems( all_filters ):
-      filetypes = [ type_spec ]
-      if type_spec.find( ',' ) != -1:
-        filetypes = type_spec.split( ',' )
-      for filetype in filetypes:
-        compiled_by_type[ filetype ] = _CompileFilters( filter_value )
-
-    return _MasterDiagnosticFilter( compiled_by_type )
+def CreateFromOptions( user_options ):
+  all_filters = user_options[ 'filter_diagnostics' ]
+  compiled_by_type = {}
+  for type_spec, filter_value in iteritems( all_filters ):
+    filetypes = [ type_spec ]
+    if type_spec.find( ',' ) != -1:
+      filetypes = type_spec.split( ',' )
+    for filetype in filetypes:
+      compiled_by_type[ filetype ] = _CompileFilters( filter_value )
+  return _MasterDiagnosticFilter( compiled_by_type )
 
 
 class _MasterDiagnosticFilter( object ):
@@ -70,15 +43,16 @@ class _MasterDiagnosticFilter( object ):
   def __init__( self, all_filters ):
     self._all_filters = all_filters
     self._cache = {}
+    self._current_filters = None
 
 
   def IsAllowed( self, diagnostic ):
-    # NOTE: in this class's implementation, we ask vimsupport for
-    #  the current filetypes and delegate automatically; it is probably,
-    #  more efficient, however, to call SubsetForTypes() and reuse
-    #  the returned DiagnosticFilter if it will be checked repeatedly.
-    filetypes = vimsupport.CurrentFiletypes()
-    return self.SubsetForTypes( filetypes ).IsAllowed( diagnostic )
+    # NOTE: a diagnostic IsAllowed() ONLY if NO filters match it
+    for filterMatches in self._current_filters:
+      if filterMatches( diagnostic ):
+        return False
+
+    return True
 
 
   def SubsetForTypes( self, filetypes ):
@@ -95,17 +69,13 @@ class _MasterDiagnosticFilter( object ):
       type_specific = self._all_filters.get( filetype, [] )
       spec.extend( type_specific )
 
-    new_filter = DiagnosticFilter( spec )
-    self._cache[ cache_key ] = new_filter
-    return new_filter
+    self._cache[ cache_key ] = spec
+    self._current_filters = spec
 
 
 def _ListOf( config_entry ):
   if isinstance( config_entry, list ):
     return config_entry
-
-  if config_entry is None:
-    return []
 
   return [ config_entry ]
 

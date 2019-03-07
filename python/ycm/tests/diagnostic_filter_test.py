@@ -26,7 +26,7 @@ from ycm.tests.test_utils import MockVimModule
 MockVimModule()
 
 from hamcrest import assert_that, equal_to
-from ycm.diagnostic_filter import DiagnosticFilter
+from ycm.diagnostic_filter import CreateFromOptions
 
 
 def _assert_accept_equals( filter, text_or_obj, expected ):
@@ -49,7 +49,9 @@ def _JavaFilter( config ):
 
 
 def _CreateFilterForTypes( opts, types ):
-  return DiagnosticFilter.CreateFromOptions( opts ).SubsetForTypes( types )
+  f = CreateFromOptions( opts )
+  f.SubsetForTypes( types )
+  return f
 
 
 def RegexFilter_test():

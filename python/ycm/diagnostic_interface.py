@@ -25,7 +25,7 @@ from builtins import *  # noqa
 from future.utils import itervalues, iteritems
 from collections import defaultdict
 from ycm import vimsupport
-from ycm.diagnostic_filter import DiagnosticFilter, CompileLevel
+from ycm.diagnostic_filter import CreateFromOptions, CompileLevel
 
 
 class DiagnosticInterface( object ):
@@ -33,7 +33,7 @@ class DiagnosticInterface( object ):
     self._bufnr = bufnr
     self._user_options = user_options
     self._diagnostics = []
-    self._diag_filter = DiagnosticFilter.CreateFromOptions( user_options )
+    self._diag_filter = CreateFromOptions( user_options )
     # Line and column numbers are 1-based
     self._line_to_diags = defaultdict( list )
     self._previous_diag_line_number = -1
@@ -82,8 +82,8 @@ class DiagnosticInterface( object ):
 
   def _ApplyDiagnosticFilter( self, diags ):
     filetypes = vimsupport.GetBufferFiletypes( self._bufnr )
-    diag_filter = self._diag_filter.SubsetForTypes( filetypes )
-    return filter( diag_filter.IsAllowed, diags )
+    self._diag_filter.SubsetForTypes( filetypes )
+    return filter( self._diag_filter.IsAllowed, diags )
 
 
   def _EchoDiagnostic( self ):
