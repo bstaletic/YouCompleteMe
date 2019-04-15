@@ -52,32 +52,6 @@ let s:buftype_blacklist = {
       \ }
 
 
-" When both versions are available, we prefer Python 3 over Python 2:
-"  - faster startup (no monkey-patching from python-future);
-"  - better Windows support (e.g. temporary paths are not returned in all
-"    lowercase);
-"  - Python 2 support will eventually be dropped.
-function! s:UsingPython3()
-  if has('python3')
-    return 1
-  endif
-  return 0
-endfunction
-
-
-let s:using_python3 = s:UsingPython3()
-let s:python_until_eof = s:using_python3 ? "python3 << EOF" : "python << EOF"
-let s:python_command = s:using_python3 ? "py3 " : "py "
-
-
-function! s:Pyeval( eval_string )
-  if s:using_python3
-    return py3eval( a:eval_string )
-  endif
-  return pyeval( a:eval_string )
-endfunction
-
-
 function! s:StartMessagePoll()
   if s:pollers.receive_messages.id < 0
     let s:pollers.receive_messages.id = timer_start(
@@ -88,7 +62,7 @@ endfunction
 
 
 function! s:ReceiveMessages( timer_id )
-  let poll_again = s:Pyeval( 'ycm_state.OnPeriodicTick()' )
+  let poll_again = pyxeval( 'ycm_state.OnPeriodicTick()' )
 
   if poll_again
     let s:pollers.receive_messages.id = timer_start(
@@ -151,7 +125,7 @@ function! youcompleteme#Enable()
         \ s:pollers.server_ready.wait_milliseconds,
         \ function( 's:PollServerReady' ) )
 
-  let s:default_completion = s:Pyeval( 'vimsupport.NO_COMPLETIONS' )
+  let s:default_completion = pyxeval( 'vimsupport.NO_COMPLETIONS' )
   let s:completion = s:default_completion
 endfunction
 
@@ -176,17 +150,17 @@ endfunction
 
 
 function! youcompleteme#GetErrorCount()
-  return s:Pyeval( 'ycm_state.GetErrorCount()' )
+  return pyxeval( 'ycm_state.GetErrorCount()' )
 endfunction
 
 
 function! youcompleteme#GetWarningCount()
-  return s:Pyeval( 'ycm_state.GetWarningCount()' )
+  return pyxeval( 'ycm_state.GetWarningCount()' )
 endfunction
 
 
 function! s:SetUpPython() abort
-  exec s:python_until_eof
+  pythonx << EOF
 from __future__ import unicode_literals
 from __future__ import print_function
 from __future__ import division
@@ -424,7 +398,7 @@ function! s:DisableOnLargeFile( buffer )
   let b:ycm_largefile =
         \ threshold > 0 && getfsize( expand( a:buffer ) ) > threshold
   if b:ycm_largefile
-    exec s:python_command "vimsupport.PostVimMessage(" .
+    exec "pyx vimsupport.PostVimMessage(" .
           \ "'YouCompleteMe is disabled in this buffer; " .
           \ "the file exceeded the max size (see YCM options).' )"
   endif
@@ -519,7 +493,7 @@ function! s:OnVimLeave()
   for poller in values( s:pollers )
     call timer_stop( poller.id )
   endfor
-  exec s:python_command "ycm_state.OnVimLeave()"
+  exec "pyx ycm_state.OnVimLeave()"
 endfunction
 
 
@@ -528,7 +502,7 @@ function! s:OnCompleteDone()
     return
   endif
 
-  exec s:python_command "ycm_state.OnCompleteDone()"
+  exec "pyx ycm_state.OnCompleteDone()"
 endfunction
 
 
@@ -548,7 +522,7 @@ function! s:OnFileTypeSet()
   call s:SetCompleteFunc()
   call s:StartMessagePoll()
 
-  exec s:python_command "ycm_state.OnBufferVisit()"
+  exec "pyx ycm_state.OnBufferVisit()"
   call s:OnFileReadyToParse( 1 )
 endfunction
 
@@ -562,7 +536,7 @@ function! s:OnBufferEnter()
   call s:SetCompleteFunc()
   call s:StartMessagePoll()
 
-  exec s:python_command "ycm_state.OnBufferVisit()"
+  exec "pyx ycm_state.OnBufferVisit()"
   " Last parse may be outdated because of changes from other buffers. Force a
   " new parse.
   call s:OnFileReadyToParse( 1 )
@@ -577,23 +551,23 @@ function! s:OnBufferUnload()
     return
   endif
 
-  exec s:python_command "ycm_state.OnBufferUnload( " . buffer_number . " )"
+  exec "pyx ycm_state.OnBufferUnload( " . buffer_number . " )"
 endfunction
 
 
 function! s:UpdateMatches()
-  exec s:python_command "ycm_state.UpdateMatches()"
+  exec "pyx ycm_state.UpdateMatches()"
 endfunction
 
 
 function! s:PollServerReady( timer_id )
-  if !s:Pyeval( 'ycm_state.IsServerAlive()' )
-    exec s:python_command "ycm_state.NotifyUserIfServerCrashed()"
+  if !pyxeval( 'ycm_state.IsServerAlive()' )
+    exec "pyx ycm_state.NotifyUserIfServerCrashed()"
     " Server crashed. Don't poll it again.
     return
   endif
 
-  if !s:Pyeval( 'ycm_state.CheckIfServerIsReady()' )
+  if !pyxeval( 'ycm_state.CheckIfServerIsReady()' )
     let s:pollers.server_ready.id = timer_start(
           \ s:pollers.server_ready.wait_milliseconds,
           \ function( 's:PollServerReady' ) )
@@ -612,8 +586,8 @@ function! s:OnFileReadyToParse( ... )
 
   " We only want to send a new FileReadyToParse event notification if the buffer
   " has changed since the last time we sent one, or if forced.
-  if force_parsing || s:Pyeval( "ycm_state.NeedsReparse()" )
-    exec s:python_command "ycm_state.OnFileReadyToParse()"
+  if force_parsing || pyxeval( "ycm_state.NeedsReparse()" )
+    exec "pyx ycm_state.OnFileReadyToParse()"
 
     call timer_stop( s:pollers.file_parse_response.id )
     let s:pollers.file_parse_response.id = timer_start(
@@ -624,15 +598,15 @@ endfunction
 
 
 function! s:PollFileParseResponse( ... )
-  if !s:Pyeval( "ycm_state.FileParseRequestReady()" )
+  if !pyxeval( "ycm_state.FileParseRequestReady()" )
     let s:pollers.file_parse_response.id = timer_start(
           \ s:pollers.file_parse_response.wait_milliseconds,
           \ function( 's:PollFileParseResponse' ) )
     return
   endif
 
-  exec s:python_command "ycm_state.HandleFileParseRequest()"
-  if s:Pyeval( "ycm_state.ShouldResendFileParseRequest()" )
+  exec "pyx ycm_state.HandleFileParseRequest()"
+  if pyxeval( "ycm_state.ShouldResendFileParseRequest()" )
     call s:OnFileReadyToParse( 1 )
   endif
 endfunction
@@ -695,7 +669,7 @@ function! s:OnCursorMovedNormalMode()
     return
   endif
 
-  exec s:python_command "ycm_state.OnCursorMoved()"
+  exec "pyx ycm_state.OnCursorMoved()"
 endfunction
 
 
@@ -724,7 +698,7 @@ function! s:OnTextChangedInsertMode()
   " We have to make sure we correctly leave semantic mode even when the user
   " inserts something like a "operator[]" candidate string which fails
   " CurrentIdentifierFinished check.
-  if s:force_semantic && !s:Pyeval( 'base.LastEnteredCharIsIdentifierChar()' )
+  if s:force_semantic && !pyxeval( 'base.LastEnteredCharIsIdentifierChar()' )
     let s:force_semantic = 0
   endif
 
@@ -737,7 +711,7 @@ function! s:OnTextChangedInsertMode()
     call s:InvokeCompletion()
   endif
 
-  exec s:python_command "ycm_state.OnCursorMoved()"
+  exec "pyx ycm_state.OnCursorMoved()"
 
   if g:ycm_autoclose_preview_window_after_completion
     call s:ClosePreviewWindowIfNeeded()
@@ -755,7 +729,7 @@ function! s:OnInsertLeave()
   let s:completion = s:default_completion
 
   call s:OnFileReadyToParse()
-  exec s:python_command "ycm_state.OnInsertLeave()"
+  exec "pyx ycm_state.OnInsertLeave()"
   if g:ycm_autoclose_preview_window_after_completion ||
         \ g:ycm_autoclose_preview_window_after_insertion
     call s:ClosePreviewWindowIfNeeded()
@@ -780,10 +754,10 @@ endfunction
 
 
 function! s:IdentifierFinishedOperations()
-  if !s:Pyeval( 'base.CurrentIdentifierFinished()' )
+  if !pyxeval( 'base.CurrentIdentifierFinished()' )
     return
   endif
-  exec s:python_command "ycm_state.OnCurrentIdentifierFinished()"
+  exec "pyx ycm_state.OnCurrentIdentifierFinished()"
   let s:force_semantic = 0
   let s:completion = s:default_completion
 endfunction
@@ -823,12 +797,12 @@ endfunction
 
 
 function! s:OnBlankLine()
-  return s:Pyeval( 'not vim.current.line or vim.current.line.isspace()' )
+  return pyxeval( 'not vim.current.line or vim.current.line.isspace()' )
 endfunction
 
 
 function! s:InvokeCompletion()
-  exec s:python_command "ycm_state.SendCompletionRequest(" .
+  exec "pyx ycm_state.SendCompletionRequest(" .
         \ "vimsupport.GetBoolValue( 's:force_semantic' ) )"
 
   call s:PollCompletion()
@@ -838,7 +812,7 @@ endfunction
 function! s:InvokeSemanticCompletion()
   if &completefunc == "youcompleteme#CompleteFunc"
     let s:force_semantic = 1
-    exec s:python_command "ycm_state.SendCompletionRequest( True )"
+    exec "pyx ycm_state.SendCompletionRequest( True )"
 
     call s:PollCompletion()
   endif
@@ -851,14 +825,14 @@ endfunction
 
 
 function! s:PollCompletion( ... )
-  if !s:Pyeval( 'ycm_state.CompletionRequestReady()' )
+  if !pyxeval( 'ycm_state.CompletionRequestReady()' )
     let s:pollers.completion.id = timer_start(
           \ s:pollers.completion.wait_milliseconds,
           \ function( 's:PollCompletion' ) )
     return
   endif
 
-  let s:completion = s:Pyeval( 'ycm_state.GetCompletionResponse()' )
+  let s:completion = pyxeval( 'ycm_state.GetCompletionResponse()' )
   call s:Complete()
 endfunction
 
@@ -908,7 +882,7 @@ endfunction
 
 
 function! youcompleteme#ServerPid()
-  return s:Pyeval( 'ycm_state.ServerPid()' )
+  return pyxeval( 'ycm_state.ServerPid()' )
 endfunction
 
 
@@ -917,7 +891,7 @@ function! s:SetUpCommands()
   command! YcmDebugInfo call s:DebugInfo()
   command! -nargs=* -complete=custom,youcompleteme#LogsComplete
         \ YcmToggleLogs call s:ToggleLogs(<f-args>)
-  if s:Pyeval( 'vimsupport.VimVersionAtLeast( "7.4.1898" )' )
+  if pyxeval( 'vimsupport.VimVersionAtLeast( "7.4.1898" )' )
     command! -nargs=* -complete=custom,youcompleteme#SubCommandsComplete -range
           \ YcmCompleter call s:CompleterCommand(<q-mods>,
           \                                      <count>,
@@ -941,7 +915,7 @@ endfunction
 function! s:RestartServer()
   call s:SetUpOptions()
 
-  exec s:python_command "ycm_state.RestartServer()"
+  exec "pyx ycm_state.RestartServer()"
 
   call timer_stop( s:pollers.receive_messages.id )
   let s:pollers.receive_messages.id = -1
@@ -955,7 +929,7 @@ endfunction
 
 function! s:DebugInfo()
   echom "Printing YouCompleteMe debug information..."
-  let debug_info = s:Pyeval( 'ycm_state.DebugInfo()' )
+  let debug_info = pyxeval( 'ycm_state.DebugInfo()' )
   for line in split( debug_info, "\n" )
     echom '-- ' . line
   endfor
@@ -963,17 +937,17 @@ endfunction
 
 
 function! s:ToggleLogs(...)
-  exec s:python_command "ycm_state.ToggleLogs( *vim.eval( 'a:000' ) )"
+  exec "pyx ycm_state.ToggleLogs( *vim.eval( 'a:000' ) )"
 endfunction
 
 
 function! youcompleteme#LogsComplete( arglead, cmdline, cursorpos )
-  return join( s:Pyeval( 'list( ycm_state.GetLogfiles() )' ), "\n" )
+  return join( pyxeval( 'list( ycm_state.GetLogfiles() )' ), "\n" )
 endfunction
 
 
 function! s:CompleterCommand( mods, count, line1, line2, ... )
-  exec s:python_command "ycm_state.SendCommandRequest(" .
+  exec "pyx ycm_state.SendCommandRequest(" .
         \ "vim.eval( 'a:000' )," .
         \ "vim.eval( 'a:mods' )," .
         \ "vimsupport.GetBoolValue( 'a:count != -1' )," .
@@ -983,30 +957,30 @@ endfunction
 
 
 function! youcompleteme#SubCommandsComplete( arglead, cmdline, cursorpos )
-  return join( s:Pyeval( 'ycm_state.GetDefinedSubcommands()' ), "\n" )
+  return join( pyxeval( 'ycm_state.GetDefinedSubcommands()' ), "\n" )
 endfunction
 
 
 function! youcompleteme#OpenGoToList()
-  exec s:python_command "vimsupport.PostVimMessage(" .
+  exec "pyx vimsupport.PostVimMessage(" .
         \ "'WARNING: youcompleteme#OpenGoToList function is deprecated. " .
         \ "Do NOT use it.' )"
-  exec s:python_command "vimsupport.OpenQuickFixList( True, True )"
+  exec "pyx vimsupport.OpenQuickFixList( True, True )"
 endfunction
 
 
 function! s:ShowDiagnostics()
-  exec s:python_command "ycm_state.ShowDiagnostics()"
+  exec "pyx ycm_state.ShowDiagnostics()"
 endfunction
 
 
 function! s:ShowDetailedDiagnostic()
-  exec s:python_command "ycm_state.ShowDetailedDiagnostic()"
+  exec "pyx ycm_state.ShowDetailedDiagnostic()"
 endfunction
 
 
 function! s:ForceCompileAndDiagnostics()
-  exec s:python_command "ycm_state.ForceCompileAndDiagnostics()"
+  exec "pyx ycm_state.ForceCompileAndDiagnostics()"
 endfunction
 
 
