@@ -153,27 +153,25 @@ class BaseRequest:
                            timeout = _READ_TIMEOUT_SEC,
                            payload = None ):
     request_uri = _BuildUri( handler )
+    sent_data = data
     if method == 'POST':
       sent_data = _ToUtf8Json( data )
       headers = BaseRequest._ExtraHeaders( method,
                                            request_uri,
                                            sent_data )
       _logger.debug( 'POST %s\n%s\n%s', request_uri, headers, sent_data )
+    else:
+      headers = BaseRequest._ExtraHeaders( method, request_uri )
 
-      return BaseRequest.Session().post(
-        request_uri,
-        data = sent_data,
-        headers = headers,
-        timeout = ( _CONNECT_TIMEOUT_SEC, timeout ) )
+      _logger.debug( 'GET %s\n%s', request_uri, headers )
 
-    headers = BaseRequest._ExtraHeaders( method, request_uri )
-
-    _logger.debug( 'GET %s\n%s', request_uri, headers )
-
-    return BaseRequest.Session().get(
+    return BaseRequest.Session().executor.submit(
+      BaseRequest.Session().request,
+      method,
       request_uri,
       headers = headers,
       timeout = ( _CONNECT_TIMEOUT_SEC, timeout ),
+      data = sent_data,
       params = payload )
 
 
@@ -208,9 +206,8 @@ class BaseRequest:
       return cls.session
     except AttributeError:
       from ycm.unsafe_thread_pool_executor import UnsafeThreadPoolExecutor
-      from requests_futures.sessions import FuturesSession
-      executor = UnsafeThreadPoolExecutor( max_workers = 30 )
-      cls.session = FuturesSession( executor = executor )
+      cls.session = cls.Requests().Session()
+      cls.session.executor = UnsafeThreadPoolExecutor( max_workers = 30 )
       return cls.session
 
 
