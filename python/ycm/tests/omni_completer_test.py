@@ -17,6 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with YouCompleteMe.  If not, see <http://www.gnu.org/licenses/>.
 
+import pytest
 from hamcrest import assert_that, contains, empty, has_entries
 
 from ycm.tests.test_utils import MockVimBuffers, MockVimModule, VimBuffer
@@ -705,7 +706,6 @@ def OmniCompleter_GetCompletions_MoveCursorPositionAtStartColumn_test( ycm ):
     )
 
 
-@YouCompleteMeInstance( { 'g:ycm_cache_omnifunc': 1 } )
 def StartColumnCompliance( ycm,
                            omnifunc_start_column,
                            ycm_completions,
@@ -731,15 +731,27 @@ def StartColumnCompliance( ycm,
     )
 
 
-def OmniCompleter_GetCompletions_StartColumnCompliance_test():
-  yield StartColumnCompliance, -4, [ { 'word': 'foo', 'equal': 1 } ], 3
-  yield StartColumnCompliance, -3, [],                                1
-  yield StartColumnCompliance, -2, [],                                1
-  yield StartColumnCompliance, -1, [ { 'word': 'foo', 'equal': 1 } ], 3
-  yield StartColumnCompliance,  0, [ { 'word': 'foo', 'equal': 1 } ], 1
-  yield StartColumnCompliance,  1, [ { 'word': 'foo', 'equal': 1 } ], 2
-  yield StartColumnCompliance,  2, [ { 'word': 'foo', 'equal': 1 } ], 3
-  yield StartColumnCompliance,  3, [ { 'word': 'foo', 'equal': 1 } ], 3
+@YouCompleteMeInstance( { 'g:ycm_cache_omnifunc': 1 } )
+@pytest.mark.parametrize(
+  'omnifunc_start_column,ycm_completions,ycm_start_column', [
+   [ -4, [ { 'word': 'foo', 'equal': 1 } ], 3 ],
+   [ -3, [],                                1 ],
+   [ -2, [],                                1 ],
+   [ -1, [ { 'word': 'foo', 'equal': 1 } ], 3 ],
+   [  0, [ { 'word': 'foo', 'equal': 1 } ], 1 ],
+   [  1, [ { 'word': 'foo', 'equal': 1 } ], 2 ],
+   [  2, [ { 'word': 'foo', 'equal': 1 } ], 3 ],
+   [  3, [ { 'word': 'foo', 'equal': 1 } ], 3 ]
+  ] )
+def OmniCompleter_GetCompletions_StartColumnCompliance_test(
+    ycm,
+    omnifunc_start_column,
+    ycm_completions,
+    ycm_start_column ):
+  StartColumnCompliance( ycm,
+                         omnifunc_start_column,
+                         ycm_completions,
+                         ycm_start_column )
 
 
 @YouCompleteMeInstance( { 'g:ycm_cache_omnifunc': 0,
