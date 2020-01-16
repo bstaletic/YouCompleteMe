@@ -22,7 +22,7 @@ MockVimModule()
 
 import contextlib
 from hamcrest import assert_that, empty, equal_to, none
-from mock import MagicMock, DEFAULT, patch
+from unittest.mock import MagicMock, DEFAULT, patch
 
 from ycm import vimsupport
 from ycmd.utils import ToBytes
