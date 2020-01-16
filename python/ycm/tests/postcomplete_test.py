@@ -21,8 +21,8 @@ from ycm.tests.test_utils import MockVimModule
 MockVimModule()
 
 import contextlib
+from hamcrest import assert_that, empty, equal_to, none
 from mock import MagicMock, DEFAULT, patch
-from nose.tools import eq_, ok_
 
 from ycm import vimsupport
 from ycmd.utils import ToBytes
@@ -174,43 +174,44 @@ def OnCompleteDone_NoFixItForOmnifunc_test( *args ):
 def FilterToCompletedCompletions_MatchIsReturned_test():
   completions = [ BuildCompletion( insertion_text = 'Test' ) ]
   result = _FilterToMatchingCompletions( CompleteItemIs( 'Test' ), completions )
-  eq_( list( result ), completions )
+  assert_that( list( result ), equal_to( completions ) )
 
 
 def FilterToCompletedCompletions_ShortTextDoesntRaise_test():
   completions = [ BuildCompletion( insertion_text = 'AAA' ) ]
   result = _FilterToMatchingCompletions( CompleteItemIs( 'A' ), completions )
-  eq_( list( result ), [] )
+  assert_that( list( result ), empty() )
 
 
 def FilterToCompletedCompletions_ExactMatchIsReturned_test():
   completions = [ BuildCompletion( insertion_text = 'Test' ) ]
   result = _FilterToMatchingCompletions( CompleteItemIs( 'Test' ), completions )
-  eq_( list( result ), completions )
+  assert_that( list( result ), equal_to( completions ) )
 
 
 def FilterToCompletedCompletions_NonMatchIsntReturned_test():
   completions = [ BuildCompletion( insertion_text = 'A' ) ]
   result = _FilterToMatchingCompletions( CompleteItemIs( '   Quote' ),
                                          completions )
-  eq_( list( result ), [] )
+  assert_that( list( result ), empty() )
 
 
 def FilterToCompletedCompletions_Unicode_test():
   completions = [ BuildCompletion( insertion_text = '†es†' ) ]
   result = _FilterToMatchingCompletions( CompleteItemIs( '†es†' ),
                                          completions )
-  eq_( list( result ), completions )
+  assert_that( list( result ), equal_to( completions ) )
 
 
 def GetRequiredNamespaceImport_ReturnNoneForNoExtraData_test():
-  eq_( _GetRequiredNamespaceImport( {} ), None )
+  assert_that( _GetRequiredNamespaceImport( {} ), none() )
 
 
 def GetRequiredNamespaceImport_ReturnNamespaceFromExtraData_test():
   namespace = 'A_NAMESPACE'
-  eq_( _GetRequiredNamespaceImport( BuildCompletionNamespace( namespace ) ),
-       namespace )
+  assert_that( _GetRequiredNamespaceImport(
+                   BuildCompletionNamespace( namespace ) ),
+               equal_to( namespace ) )
 
 
 @patch( 'ycm.vimsupport.GetVariableValue',
@@ -219,7 +220,7 @@ def GetCompletionsUserMayHaveCompleted_ReturnEmptyIfPendingMatches_test(
     *args ):
   completions = [ BuildCompletionNamespace( None ) ]
   with _SetupForCsharpCompletionDone( completions ) as request:
-    eq_( request._GetCompletionsUserMayHaveCompleted(), [] )
+    assert_that( request._GetCompletionsUserMayHaveCompleted(), empty() )
 
 
 def GetCompletionsUserMayHaveCompleted_ReturnMatchIfExactMatches_test( *args ):
@@ -228,7 +229,8 @@ def GetCompletionsUserMayHaveCompleted_ReturnMatchIfExactMatches_test( *args ):
   with _SetupForCsharpCompletionDone( completions ) as request:
     with patch( 'ycm.vimsupport.GetVariableValue',
                 GetVariableValue_CompleteItemIs( *info[ 1: ] ) ):
-      eq_( request._GetCompletionsUserMayHaveCompleted(), completions )
+      assert_that( request._GetCompletionsUserMayHaveCompleted(),
+                   equal_to( completions ) )
 
 
 def GetCompletionsUserMayHaveCompleted_ReturnMatchIfExactMatchesEvenIfPartial_test(): # noqa
@@ -238,7 +240,8 @@ def GetCompletionsUserMayHaveCompleted_ReturnMatchIfExactMatchesEvenIfPartial_te
   with _SetupForCsharpCompletionDone( completions ) as request:
     with patch( 'ycm.vimsupport.GetVariableValue',
                 GetVariableValue_CompleteItemIs( *info[ 1: ] ) ):
-      eq_( request._GetCompletionsUserMayHaveCompleted(), [ completions[ 0 ] ] )
+      assert_that( request._GetCompletionsUserMayHaveCompleted(),
+                   equal_to( [ completions[ 0 ] ] ) )
 
 
 def GetCompletionsUserMayHaveCompleted_DontReturnMatchIfNoExactMatchesAndPartial_test(): # noqa
@@ -248,7 +251,7 @@ def GetCompletionsUserMayHaveCompleted_DontReturnMatchIfNoExactMatchesAndPartial
   with _SetupForCsharpCompletionDone( completions ) as request:
     with patch( 'ycm.vimsupport.GetVariableValue',
                 GetVariableValue_CompleteItemIs( *info[ 1: ] ) ):
-      eq_( request._GetCompletionsUserMayHaveCompleted(), [] )
+      assert_that( request._GetCompletionsUserMayHaveCompleted(), empty() )
 
 
 @patch( 'ycm.vimsupport.GetVariableValue',
@@ -256,7 +259,8 @@ def GetCompletionsUserMayHaveCompleted_DontReturnMatchIfNoExactMatchesAndPartial
 def GetCompletionsUserMayHaveCompleted_ReturnMatchIfMatches_test( *args ):
   completions = [ BuildCompletionNamespace( None ) ]
   with _SetupForCsharpCompletionDone( completions ) as request:
-    eq_( request._GetCompletionsUserMayHaveCompleted(), completions )
+    assert_that( request._GetCompletionsUserMayHaveCompleted(),
+                 equal_to( completions ) )
 
 
 @patch( 'ycm.vimsupport.GetVariableValue',
@@ -269,8 +273,8 @@ def GetCompletionsUserMayHaveCompleted_UseUserData0_test( *args ):
   ]
 
   with _SetupForCsharpCompletionDone( completions ) as request:
-    eq_( request._GetCompletionsUserMayHaveCompleted(),
-         [ BuildCompletionNamespace( 'namespace1' ) ] )
+    assert_that( request._GetCompletionsUserMayHaveCompleted(),
+                 equal_to( [ BuildCompletionNamespace( 'namespace1' ) ] ) )
 
 
 @patch( 'ycm.vimsupport.GetVariableValue',
@@ -283,8 +287,8 @@ def GetCompletionsUserMayHaveCompleted_UseUserData1_test( *args ):
   ]
 
   with _SetupForCsharpCompletionDone( completions ) as request:
-    eq_( request._GetCompletionsUserMayHaveCompleted(),
-         [ BuildCompletionNamespace( 'namespace2' ) ] )
+    assert_that( request._GetCompletionsUserMayHaveCompleted(),
+                 equal_to( [ BuildCompletionNamespace( 'namespace2' ) ] ) )
 
 
 @patch( 'ycm.vimsupport.GetVariableValue',
@@ -297,7 +301,7 @@ def GetCompletionsUserMayHaveCompleted_EmptyUserData_test( *args ):
   ]
 
   with _SetupForCsharpCompletionDone( completions ) as request:
-    eq_( request._GetCompletionsUserMayHaveCompleted(), [] )
+    assert_that( request._GetCompletionsUserMayHaveCompleted(), empty() )
 
 
 @patch( 'ycm.vimsupport.GetVariableValue',
@@ -305,7 +309,7 @@ def GetCompletionsUserMayHaveCompleted_EmptyUserData_test( *args ):
 def PostCompleteCsharp_EmptyDoesntInsertNamespace_test( *args ):
   with _SetupForCsharpCompletionDone( [] ) as request:
     request._OnCompleteDone_Csharp()
-    ok_( not vimsupport.InsertNamespace.called )
+    assert_that( not vimsupport.InsertNamespace.called )
 
 
 @patch( 'ycm.vimsupport.GetVariableValue',
@@ -315,7 +319,7 @@ def PostCompleteCsharp_ExistingWithoutNamespaceDoesntInsertNamespace_test(
   completions = [ BuildCompletionNamespace( None ) ]
   with _SetupForCsharpCompletionDone( completions ) as request:
     request._OnCompleteDone_Csharp()
-    ok_( not vimsupport.InsertNamespace.called )
+    assert_that( not vimsupport.InsertNamespace.called )
 
 
 @patch( 'ycm.vimsupport.GetVariableValue',
