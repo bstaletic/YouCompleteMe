@@ -20,7 +20,7 @@ from ycm.tests.test_utils import ( CurrentWorkingDirectory, ExtendedMock,
 MockVimModule()
 
 import contextlib
-from hamcrest import assert_that, contains, empty, has_entries
+from hamcrest import assert_that, contains_exactly, empty, has_entries
 from unittest.mock import call, MagicMock, patch
 
 from ycm.tests import PathToTestFile, YouCompleteMeInstance
@@ -107,7 +107,7 @@ def SendCompletionRequest_ResponseContainingError_test( post_vim_message, ycm ):
       assert_that(
         response,
         has_entries( {
-          'completions': contains( has_entries( {
+          'completions': contains_exactly( has_entries( {
             'word': 'insertion_text',
             'abbr': 'menu_text',
             'menu': 'extra_menu_info',

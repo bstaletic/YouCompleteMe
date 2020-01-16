@@ -21,7 +21,7 @@ from ycm.tests.test_utils import ( CurrentWorkingDirectory, ExtendedMock,
 MockVimModule()
 
 from ycm import vimsupport
-from hamcrest import ( assert_that, calling, contains, empty, equal_to,
+from hamcrest import ( assert_that, calling, contains_exactly, empty, equal_to,
                        has_entry, is_not, raises )
 from unittest.mock import MagicMock, call, patch
 from ycmd.utils import ToBytes
@@ -608,7 +608,7 @@ def ReplaceChunk_CursorPosition_test():
 
   AssertBuffersAreEqualAsBytes( [ 'xyz', 'foobar' ], result_buffer )
   # Cursor line is 0-based.
-  assert_that( vimsupport.CurrentLineAndColumn(), contains( 1, 6 ) )
+  assert_that( vimsupport.CurrentLineAndColumn(), contains_exactly( 1, 6 ) )
 
 
 def _BuildLocations( start_line, start_column, end_line, end_column ):
@@ -759,7 +759,7 @@ def ReplaceChunks_SingleFile_Open_test( vim_command,
     vimsupport.ReplaceChunks( chunks )
 
   # Ensure that we applied the replacement correctly
-  assert_that( result_buffer.GetLines(), contains(
+  assert_that( result_buffer.GetLines(), contains_exactly(
     'replacementline2',
     'line3',
   ) )
@@ -851,7 +851,7 @@ def ReplaceChunks_SingleFile_NotOpen_test( vim_command,
   ] )
 
   # Ensure that we applied the replacement correctly
-  assert_that( result_buffer.GetLines(), contains(
+  assert_that( result_buffer.GetLines(), contains_exactly(
     'replacementline2',
     'line3',
   ) )
@@ -963,7 +963,7 @@ def ReplaceChunks_SingleFile_NotOpen_Silent_test(
   confirm.assert_not_called()
 
   # Ensure that we applied the replacement correctly
-  assert_that( result_buffer.GetLines(), contains(
+  assert_that( result_buffer.GetLines(), contains_exactly(
     'replacementline2',
     'line3',
   ) )
@@ -1060,7 +1060,7 @@ def ReplaceChunks_User_Declines_To_Open_File_test(
   ] )
 
   # Ensure that buffer is not changed
-  assert_that( result_buffer.GetLines(), contains(
+  assert_that( result_buffer.GetLines(), contains_exactly(
     'line1',
     'line2',
     'line3',
@@ -1147,7 +1147,7 @@ def ReplaceChunks_User_Aborts_Opening_File_test(
   ] )
 
   # Ensure that buffer is not changed
-  assert_that( result_buffer.GetLines(), contains(
+  assert_that( result_buffer.GetLines(), contains_exactly(
     'line1',
     'line2',
     'line3',
@@ -1253,11 +1253,11 @@ def ReplaceChunks_MultiFile_Open_test( vim_command,
   ] )
 
   # Ensure that buffers are updated
-  assert_that( second_file.GetLines(), contains(
+  assert_that( second_file.GetLines(), contains_exactly(
     'another line1',
     'second_file_replacement ACME line2',
   ) )
-  assert_that( first_file.GetLines(), contains(
+  assert_that( first_file.GetLines(), contains_exactly(
     'first_file_replacement line2',
     'line3',
   ) )
@@ -1647,10 +1647,10 @@ def SelectFromList_Negative_test( vim_eval ):
 def Filetypes_IntegerFiletype_test():
   current_buffer = VimBuffer( 'buffer', number = 1, filetype = '42' )
   with MockVimBuffers( [ current_buffer ], [ current_buffer ] ):
-    assert_that( vimsupport.CurrentFiletypes(), contains( '42' ) )
-    assert_that( vimsupport.GetBufferFiletypes( 1 ), contains( '42' ) )
+    assert_that( vimsupport.CurrentFiletypes(), contains_exactly( '42' ) )
+    assert_that( vimsupport.GetBufferFiletypes( 1 ), contains_exactly( '42' ) )
     assert_that( vimsupport.FiletypesForBuffer( current_buffer ),
-                 contains( '42' ) )
+                 contains_exactly( '42' ) )
 
 
 @patch( 'ycm.vimsupport.VariableExists', return_value = False )

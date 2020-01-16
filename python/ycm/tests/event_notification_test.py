@@ -29,8 +29,16 @@ from ycm.vimsupport import SIGN_BUFFER_ID_INITIAL_VALUE
 from ycmd.responses import ( BuildDiagnosticData, Diagnostic, Location, Range,
                              UnknownExtraConf, ServerError )
 
-from hamcrest import ( assert_that, contains, empty, equal_to, has_entries,
-                       has_entry, has_item, has_items, has_key, is_not )
+from hamcrest import ( assert_that,
+                       contains_exactly,
+                       empty,
+                       equal_to,
+                       has_entries,
+                       has_entry,
+                       has_item,
+                       has_items,
+                       has_key,
+                       is_not )
 from unittest.mock import call, MagicMock, patch
 
 
@@ -141,11 +149,11 @@ def EventNotification_FileReadyToParse_NonDiagnostic_Error_NonNative_test(
       ycm.HandleFileParseRequest()
       assert_that(
         test_utils.VIM_MATCHES,
-        contains()
+        empty()
       )
       assert_that(
         test_utils.VIM_SIGNS,
-        contains()
+        empty()
       )
       assert_that( not ycm.ShouldResendFileParseRequest() )
 
@@ -284,7 +292,7 @@ def _Check_FileReadyToParse_Diagnostic_Error( ycm ):
       ycm.HandleFileParseRequest()
       assert_that(
         test_utils.VIM_SIGNS,
-        contains(
+        contains_exactly(
           VimSign( SIGN_BUFFER_ID_INITIAL_VALUE, 1, 'YcmError', 1 )
         )
       )
@@ -296,7 +304,7 @@ def _Check_FileReadyToParse_Diagnostic_Error( ycm ):
       ycm.HandleFileParseRequest()
       assert_that(
         test_utils.VIM_SIGNS,
-        contains(
+        contains_exactly(
           VimSign( SIGN_BUFFER_ID_INITIAL_VALUE, 1, 'YcmError', 1 )
         )
       )
@@ -311,7 +319,7 @@ def _Check_FileReadyToParse_Diagnostic_Error( ycm ):
       ycm.HandleFileParseRequest()
       assert_that(
         test_utils.VIM_SIGNS,
-        contains(
+        contains_exactly(
           VimSign( SIGN_BUFFER_ID_INITIAL_VALUE, 1, 'YcmError', 1 )
         )
       )
@@ -339,7 +347,7 @@ def _Check_FileReadyToParse_Diagnostic_Warning( ycm ):
       ycm.HandleFileParseRequest()
       assert_that(
         test_utils.VIM_SIGNS,
-        contains(
+        contains_exactly(
           VimSign( SIGN_BUFFER_ID_INITIAL_VALUE + 2, 2, 'YcmWarning', 1 )
         )
       )
@@ -351,7 +359,7 @@ def _Check_FileReadyToParse_Diagnostic_Warning( ycm ):
       ycm.HandleFileParseRequest()
       assert_that(
         test_utils.VIM_SIGNS,
-        contains(
+        contains_exactly(
           VimSign( SIGN_BUFFER_ID_INITIAL_VALUE + 2, 2, 'YcmWarning', 1 )
         )
       )
@@ -397,7 +405,7 @@ def EventNotification_FileReadyToParse_TagFiles_UnicodeWorkingDirectory_test(
     assert_that(
       # Positional arguments passed to PostDataToHandlerAsync.
       post_data_to_handler_async.call_args[ 0 ],
-      contains(
+      contains_exactly(
         has_entries( {
           'filepath': current_buffer_file,
           'line_num': 1,
@@ -451,7 +459,7 @@ def EventNotification_BufferVisit_BuildRequestForCurrentAndUnsavedBuffers_test(
     assert_that(
       # Positional arguments passed to PostDataToHandlerAsync.
       post_data_to_handler_async.call_args[ 0 ],
-      contains(
+      contains_exactly(
         has_entries( {
           'filepath': current_buffer_file,
           'line_num': 1,
@@ -499,7 +507,7 @@ def EventNotification_BufferUnload_BuildRequestForDeletedAndUnsavedBuffers_test(
   assert_that(
     # Positional arguments passed to PostDataToHandlerAsync.
     post_data_to_handler_async.call_args[ 0 ],
-    contains(
+    contains_exactly(
       has_entries( {
         'filepath': deleted_buffer_file,
         'line_num': 1,
@@ -538,7 +546,7 @@ def EventNotification_FileReadyToParse_SyntaxKeywords_SeedWithCache_test(
       assert_that(
         # Positional arguments passed to PostDataToHandlerAsync.
         post_data_to_handler_async.call_args[ 0 ],
-        contains(
+        contains_exactly(
           has_entry( 'syntax_keywords', has_items( 'foo', 'bar' ) ),
           'event_notification'
         )
@@ -549,7 +557,7 @@ def EventNotification_FileReadyToParse_SyntaxKeywords_SeedWithCache_test(
       assert_that(
         # Positional arguments passed to PostDataToHandlerAsync.
         post_data_to_handler_async.call_args[ 0 ],
-        contains(
+        contains_exactly(
           is_not( has_key( 'syntax_keywords' ) ),
           'event_notification'
         )
@@ -573,7 +581,7 @@ def EventNotification_FileReadyToParse_SyntaxKeywords_ClearCacheIfRestart_test(
       assert_that(
         # Positional arguments passed to PostDataToHandlerAsync.
         post_data_to_handler_async.call_args[ 0 ],
-        contains(
+        contains_exactly(
           has_entry( 'syntax_keywords', has_items( 'foo', 'bar' ) ),
           'event_notification'
         )
@@ -586,7 +594,7 @@ def EventNotification_FileReadyToParse_SyntaxKeywords_ClearCacheIfRestart_test(
       assert_that(
         # Positional arguments passed to PostDataToHandlerAsync.
         post_data_to_handler_async.call_args[ 0 ],
-        contains(
+        contains_exactly(
           has_entry( 'syntax_keywords', has_items( 'foo', 'bar' ) ),
           'event_notification'
         )
