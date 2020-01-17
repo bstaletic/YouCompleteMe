@@ -79,11 +79,11 @@ class BaseRequest:
         else:
           _IgnoreExtraConfFile( e.extra_conf_file )
         self._should_resend = True
-    except BaseRequest.Requests().exceptions.ConnectionError as e:
-      # We don't display this exception to the user since it is likely to happen
-      # for each subsequent request (typically if the server crashed) and we
-      # don't want to spam the user with it.
-      _logger.error( e )
+    # except BaseRequest.Requests().exceptions.ConnectionError as e:
+    #   # We don't display this exception to the user since it is likely to happen
+    #   # for each subsequent request (typically if the server crashed) and we
+    #   # don't want to spam the user with it.
+    #   _logger.error( e )
     except Exception as e:
       _logger.exception( 'Error while handling server response' )
       if display_message:
@@ -164,15 +164,19 @@ class BaseRequest:
       headers = BaseRequest._ExtraHeaders( method, request_uri )
 
       _logger.debug( 'GET %s\n%s', request_uri, headers )
+      if payload:
+        for k, v in payload.items():
+          param = bytes( '?' + k + '=' + v, 'utf-8' )
+          request_uri += param
 
+    from urllib.parse import urlencode
     return BaseRequest.Session().executor.submit(
       BaseRequest.Session().request,
-      method,
       request_uri,
+      method,
       headers = headers,
-      timeout = ( _CONNECT_TIMEOUT_SEC, timeout ),
-      data = sent_data,
-      params = payload )
+      # timeout = ( _CONNECT_TIMEOUT_SEC, timeout ),
+      body = urlencode( data ) )
 
 
   @staticmethod
@@ -195,7 +199,7 @@ class BaseRequest:
     try:
       return cls.requests
     except AttributeError:
-      import requests
+      import httplib2
       cls.requests = requests
       return requests
 
@@ -206,7 +210,7 @@ class BaseRequest:
       return cls.session
     except AttributeError:
       from ycm.unsafe_thread_pool_executor import UnsafeThreadPoolExecutor
-      cls.session = cls.Requests().Session()
+      cls.session = cls.Requests().Http()
       cls.session.executor = UnsafeThreadPoolExecutor( max_workers = 30 )
       return cls.session
 
@@ -250,15 +254,15 @@ def BuildRequestData( buffer_number = None ):
 def _JsonFromFuture( future ):
   response = future.result()
   _ValidateResponseObject( response )
-  if response.status_code == BaseRequest.Requests().codes.server_error:
+  if response[ 0 ].status == 500:
     raise MakeServerException( response.json() )
 
   # We let Requests handle the other status types, we only handle the 500
   # error code.
-  response.raise_for_status()
+  # response.raise_for_status()
 
-  if response.text:
-    return response.json()
+  if response[ 1 ]:
+    return json.loads( response[ 1 ] )
   return None
 
 
@@ -287,8 +291,8 @@ def _ToUtf8Json( data ):
 
 
 def _ValidateResponseObject( response ):
-  our_hmac = CreateHmac( response.content, BaseRequest.hmac_secret )
-  their_hmac = ToBytes( b64decode( response.headers[ _HMAC_HEADER ] ) )
+  our_hmac = CreateHmac( response[ 1 ], BaseRequest.hmac_secret )
+  their_hmac = ToBytes( b64decode( response[ 0 ][ _HMAC_HEADER ] ) )
   if not compare_digest( our_hmac, their_hmac ):
     raise RuntimeError( 'Received invalid HMAC for response!' )
   return True
