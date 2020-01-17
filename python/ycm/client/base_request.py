@@ -200,8 +200,8 @@ class BaseRequest:
       return cls.requests
     except AttributeError:
       import httplib2
-      cls.requests = requests
-      return requests
+      cls.requests = httplib2
+      return httplib2
 
 
   @classmethod
