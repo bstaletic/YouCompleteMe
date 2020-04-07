@@ -1067,7 +1067,10 @@ endfunction
 
 
 function! s:SendFileUpdate( bufnr, start, end, added, changes )
-  py3 ycm_state.SendFileUpdate( a:bufnr, a:start, a:end, a:changes )
+  py3 ycm_state.SendFileUpdate( vim.eval( 'a:bufnr' ),
+                                vim.eval( 'a:start' ),
+                                vim.eval( 'a:end' ),
+                                vim.eval( 'a:changes' ) )
 endfunction
 
 
