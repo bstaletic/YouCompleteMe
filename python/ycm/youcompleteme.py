@@ -102,6 +102,7 @@ class YouCompleteMe:
     self._latest_completion_request = None
     self._latest_signature_help_request = None
     self._signature_help_available_requests = SigHelpAvailableByFileType()
+    self._incremental_update_filetypes = set()
     self._signature_help_state = signature_help.SignatureHelpState()
     self._logger = logging.getLogger( 'ycm' )
     self._client_logfile = None
@@ -446,6 +447,31 @@ class YouCompleteMe:
 
   def NeedsReparse( self ):
     return self.CurrentBuffer().NeedsReparse()
+
+
+  def UpdateIncrementalFiletypes( self, filetypes ):
+    self._incremental_update_filetypes.update( filetypes )
+
+
+  def IncrementalUpdatesAllowed( self, filename ):
+    bufnr = vimsupport.GetBufferNumberForFilename( filename )
+    filetypes = vimsupport.GetBufferFiletypes( bufnr )
+    for filetype in filetypes:
+      if filetype in self._incremental_update_filetypes:
+        return True
+    return False
+
+
+  def SendFileUpdate( self, bufnr, start, end, changes ):
+    updated_buffer = self._buffers[ bufnr ]
+    for change in changes:
+      SendEventNotificationAsync( 'FileUpdate', bufnr, {
+        'range': {
+          'start': { 'line': start, 'column': 1 },
+          'end': { 'line': end, 'column': 1 }
+        },
+        'text': updated_buffer[ change[ 'lnum' ] : change[ 'end' ] ]
+      } )
 
 
   def UpdateWithNewDiagnosticsForFile( self, filepath, diagnostics ):

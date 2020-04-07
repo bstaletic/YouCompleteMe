@@ -120,6 +120,7 @@ function! youcompleteme#Enable()
     " filetype) and if so, the FileType event has triggered before and thus the
     " buffer is already parsed.
     autocmd FileType * call s:OnFileTypeSet()
+    autocmd BufNew * call s:OnBufNew()
     autocmd BufEnter,CmdwinEnter * call s:OnBufferEnter()
     autocmd BufUnload * call s:OnBufferUnload()
     autocmd InsertLeave * call s:OnInsertLeave()
@@ -1062,6 +1063,22 @@ function! youcompleteme#OpenGoToList()
         \ "'WARNING: youcompleteme#OpenGoToList function is deprecated. " .
         \ "Do NOT use it.'" )
   py3 vimsupport.OpenQuickFixList( True, True )
+endfunction
+
+
+function! s:SendFileUpdate( bufnr, start, end, added, changes )
+  py3 ycm_state.SendFileUpdate( a:bufnr, a:start, a:end, a:changes )
+endfunction
+
+
+function! s:OnBufNew()
+  if !s:AllowedToCompleteInCurrentBuffer()
+    return
+  endif
+  if !py3eval( 'ycm_state.IncrementalUpdatesAllowed( "' . expand( '<afile>' ) . '")' )
+    return
+  endif
+  call listener_add( 's:SendFileUpdate' )
 endfunction
 
 
