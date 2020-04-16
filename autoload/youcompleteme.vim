@@ -657,25 +657,23 @@ function! s:PollFileParseResponse( ... )
 endfunction
 
 
-if s:completion_api == s:COMPLETION_COMPLETEFUNC
-  function! s:SendKeys( keys )
-    " By default keys are added to the end of the typeahead buffer. If there are
-    " already keys in the buffer, they will be processed first and may change
-    " the state that our keys combination was sent for (e.g. <C-X><C-U><C-P> in
-    " normal mode instead of insert mode or <C-e> outside of completion mode).
-    " We avoid that by inserting the keys at the start of the typeahead buffer
-    " with the 'i' option. Also, we don't want the keys to be remapped to
-    " something else so we add the 'n' option.
-    call feedkeys( a:keys, 'in' )
-  endfunction
+function! s:SendKeys( keys )
+  " By default keys are added to the end of the typeahead buffer. If there are
+  " already keys in the buffer, they will be processed first and may change
+  " the state that our keys combination was sent for (e.g. <C-X><C-U><C-P> in
+  " normal mode instead of insert mode or <C-e> outside of completion mode).
+  " We avoid that by inserting the keys at the start of the typeahead buffer
+  " with the 'i' option. Also, we don't want the keys to be remapped to
+  " something else so we add the 'n' option.
+  call feedkeys( a:keys, 'in' )
+endfunction
 
 
-  function! s:CloseCompletionMenu()
-    if pumvisible()
-      call s:SendKeys( "\<C-e>" )
-    endif
-  endfunction
-endif
+function! s:CloseCompletionMenu()
+  if pumvisible()
+    call s:SendKeys( "\<C-e>" )
+  endif
+endfunction
 
 
 function! s:OnInsertChar()
@@ -768,7 +766,7 @@ function! s:OnTextChangedInsertMode( popup_is_visible )
     let s:force_semantic = 0
   endif
 
-  if exists( 'b:ycm_completing' ) &&
+  if get( b:, 'ycm_completing' ) &&
         \ ( g:ycm_auto_trigger || s:force_semantic ) &&
         \ !s:InsideCommentOrStringAndShouldStop() &&
         \ !s:OnBlankLine()
@@ -907,7 +905,7 @@ function! s:RequestSemanticCompletion()
     return ''
   endif
 
-  if exists( 'b:ycm_completing' )
+  if get( b:, 'ycm_completing' )
     let s:force_semantic = 1
     if s:completion_api == s:COMPLETION_TEXTCHANGEDP
       call s:StopPoller( s:pollers.completion )
@@ -1014,11 +1012,15 @@ if s:completion_api == s:COMPLETION_TEXTCHANGEDP
       let s:completion.completion_start_column +=
             \ col( '.' ) - s:completion.column
     endif
-    let old_completeopt = &completeopt
-    set completeopt+=noselect
-    call complete( s:completion.completion_start_column,
-                 \ s:completion.completions )
-    let &completeopt = old_completeopt
+    if len( s:completion.completions )
+      let old_completeopt = &completeopt
+      set completeopt+=noselect
+      call complete( s:completion.completion_start_column,
+                   \ s:completion.completions )
+      let &completeopt = old_completeopt
+    elseif pumvisible()
+      call s:CloseCompletionMenu()
+    endif
   endfunction
 else
   function! s:Complete()
@@ -1162,7 +1164,7 @@ function! youcompleteme#GetCommandResponse( ... )
     return ''
   endif
 
-  if !exists( 'b:ycm_completing' )
+  if !get( b:, 'ycm_completing' )
     return ''
   endif
 
