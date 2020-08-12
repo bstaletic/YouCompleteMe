@@ -45,7 +45,7 @@ class DiagnosticFilter:
 
 
   @staticmethod
-  def CreateFromOptions( user_options: Dict[str, Union[str, int, Dict[str, int], Dict[str, Dict[str, str]], Dict[str, Dict[str, List[str]]]]] ) -> _MasterDiagnosticFilter:
+  def CreateFromOptions( user_options: Dict[str, Union[str, int, Dict[str, int], Dict[str, Dict[str, str]], Dict[str, Dict[str, List[str]]]]] ):
     all_filters = user_options[ 'filter_diagnostics' ]
     compiled_by_type = {}
     for type_spec, filter_value in all_filters.items():

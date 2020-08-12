@@ -22,13 +22,6 @@ from ycm.client.base_request import ( BaseRequest, DisplayServerException,
 _logger = logging.getLogger( __name__ )
 
 
-class SigHelpAvailableByFileType( dict ):
-  def __missing__( self, filetype: str ) -> SignatureHelpAvailableRequest:
-    request = SignatureHelpAvailableRequest( filetype )
-    self[ filetype ] = request
-    return request
-
-
 class SignatureHelpRequest( BaseRequest ):
   def __init__( self, request_data ):
     super( SignatureHelpRequest, self ).__init__()
@@ -97,3 +90,10 @@ class SignatureHelpAvailableRequest( BaseRequest ):
     self._response_future = self.GetDataFromHandlerAsync(
       'signature_help_available',
       payload = { 'subserver': filetype } )
+
+
+class SigHelpAvailableByFileType( dict ):
+  def __missing__( self, filetype: str ) -> SignatureHelpAvailableRequest:
+    request = SignatureHelpAvailableRequest( filetype )
+    self[ filetype ] = request
+    return request

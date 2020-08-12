@@ -205,7 +205,7 @@ class BaseRequest:
 
 
   @classmethod
-  def Session( cls ) -> FuturesSession:
+  def Session( cls ):
     try:
       return cls.session
     except AttributeError:

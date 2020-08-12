@@ -28,8 +28,6 @@ from ycmd.utils import ( ByteOffsetToCodepointOffset,
                          ToBytes,
                          ToUnicode )
 from typing import Any, Callable, DefaultDict, Dict, List, Optional, Tuple, Union
-from unittest.mock import MagicMock
-from ycm.tests.test_utils import VimBuffer, VimWindow
 
 BUFFER_COMMAND_MAP = { 'same-buffer'      : 'edit',
                        'split'            : 'split',
@@ -151,11 +149,11 @@ def TextBeforeCursor() -> str:
   return ToUnicode( vim.current.line[ :CurrentColumn() ] )
 
 
-def BufferModified( buffer_object: VimBuffer ) -> bool:
+def BufferModified( buffer_object: Any ) -> bool:
   return buffer_object.options[ 'mod' ]
 
 
-def GetBufferData( buffer_object: VimBuffer ) -> Dict[str, Union[List[str], str]]:
+def GetBufferData( buffer_object: Any ) -> Dict[str, Union[List[str], str]]:
   return {
     # Add a newline to match what gets saved to disk. See #1455 for details.
     'contents': JoinLinesAsUnicode( buffer_object ) + '\n',
@@ -163,7 +161,7 @@ def GetBufferData( buffer_object: VimBuffer ) -> Dict[str, Union[List[str], str]
   }
 
 
-def GetUnsavedAndSpecifiedBufferData( included_buffer: VimBuffer, included_filepath: str ) -> Dict[str, Dict[str, Union[List[str], str]]]:
+def GetUnsavedAndSpecifiedBufferData( included_buffer: Any, included_filepath: str ) -> Dict[str, Dict[str, Union[List[str], str]]]:
   """Build part of the request containing the contents and filetypes of all
   dirty buffers as well as the buffer |included_buffer| with its filepath
   |included_filepath|."""
@@ -199,7 +197,7 @@ def BufferIsVisible( buffer_number: int ) -> bool:
   return window_number != -1
 
 
-def GetBufferFilepath( buffer_object: VimBuffer ) -> str:
+def GetBufferFilepath( buffer_object: Any ) -> str:
   if buffer_object.name:
     return os.path.abspath( ToUnicode( buffer_object.name ) )
   # Buffers that have just been created by a command like :enew don't have any
@@ -228,7 +226,7 @@ class DiagnosticSign( namedtuple( 'DiagnosticSign',
                                   [ 'id', 'line', 'name', 'buffer_number' ] ) ):
   # We want two signs that have different ids but the same location to compare
   # equal. ID doesn't matter.
-  def __eq__( self, other: DiagnosticSign ) -> bool:
+  def __eq__( self, other ) -> bool:
     return ( self.line == other.line and
              self.name == other.name and
              self.buffer_number == other.buffer_number )
@@ -264,7 +262,7 @@ def PlaceSign( sign: DiagnosticSign ) -> None:
 
 class DiagnosticMatch( namedtuple( 'DiagnosticMatch',
                                    [ 'id', 'group', 'pattern' ] ) ):
-  def __eq__( self, other: DiagnosticMatch ) -> bool:
+  def __eq__( self, other ) -> bool:
     return ( self.group == other.group and
              self.pattern == other.pattern )
 
@@ -322,7 +320,7 @@ def SetLocationList( diagnostics: List[Dict[str, Union[int, str]]] ) -> None:
   SetLocationListForWindow( 0, diagnostics )
 
 
-def GetWindowsForBufferNumber( buffer_number: int ) -> List[VimWindow]:
+def GetWindowsForBufferNumber( buffer_number: int ) -> List[Any]:
   """Return the list of windows containing the buffer with number
   |buffer_number| for the current tab page."""
   return [ window for window in vim.windows
@@ -458,13 +456,13 @@ def VimExpressionToPythonType( vim_expression: Union[str, List[int], Dict[int, i
     return ToUnicode( result )
 
 
-def HiddenEnabled( buffer_object: VimBuffer ) -> bool:
+def HiddenEnabled( buffer_object: Any ) -> bool:
   if buffer_object.options[ 'bh' ] == "hide":
     return True
   return GetBoolValue( '&hidden' )
 
 
-def BufferIsUsable( buffer_object: VimBuffer ) -> bool:
+def BufferIsUsable( buffer_object: Any ) -> bool:
   return not BufferModified( buffer_object ) or HiddenEnabled( buffer_object )
 
 
@@ -484,7 +482,7 @@ def ComparePaths( path1: str, path2: str ) -> bool:
 
 
 # Both |line| and |column| need to be 1-based
-def TryJumpLocationInTab( tab: MagicMock, filename: str, line: int, column: int ) -> bool:
+def TryJumpLocationInTab( tab: Any, filename: str, line: int, column: int ) -> bool:
   for win in tab.windows:
     if ComparePaths( GetBufferFilepath( win.buffer ), filename ):
       vim.current.tabpage = tab
@@ -735,7 +733,7 @@ def GetBufferFiletypes( bufnr: int ) -> List[str]:
   return ToUnicode( vim.eval( command ) ).split( '.' )
 
 
-def FiletypesForBuffer( buffer_object: VimBuffer ) -> List[str]:
+def FiletypesForBuffer( buffer_object: Any ) -> List[str]:
   # NOTE: Getting &ft for other buffers only works when the buffer has been
   # visited by the user at least once, which is true for modified buffers
 
@@ -881,7 +879,7 @@ def ReplaceChunks( chunks: List[Dict[str, Union[str, Dict[str, Dict[str, Union[i
     buffer_num, close_window = _OpenFileInSplitIfNeeded( filepath )
 
     locations.extend( ReplaceChunksInBuffer( chunks_by_file[ filepath ],
-                                             vim.buffers[ buffer_num ] ) )
+                                             Anys[ buffer_num ] ) )
 
     # When opening tons of files, we don't want to have a split for each new
     # file, as this simply does not scale, so we open the window, make the
@@ -957,7 +955,7 @@ def SplitLines( contents: bytes ) -> List[bytes]:
 #
 # NOTE: Works exclusively with bytes() instances and byte offsets as returned
 # by ycmd and used within the Vim buffers
-def ReplaceChunk( start: Dict[str, Union[int, str]], end: Dict[str, Union[int, str]], replacement_text: str, vim_buffer: VimBuffer ) -> Dict[str, Union[int, str]]:
+def ReplaceChunk( start: Dict[str, Union[int, str]], end: Dict[str, Union[int, str]], replacement_text: str, vim_buffer: Any ) -> Dict[str, Union[int, str]]:
   # ycmd's results are all 1-based, but vim's/python's are all 0-based
   # (so we do -1 on all of the values)
   start_line = start[ 'line_num' ] - 1

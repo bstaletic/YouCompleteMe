@@ -219,6 +219,30 @@ def _MockVimFunctionsEval( value: str ) -> Optional[Union[int, str, List[str]]]:
   return None
 
 
+class VimMatch:
+
+  def __init__( self, group: str, pattern: str ) -> None:
+    current_window = VIM_MOCK.current.window.number
+    self.id = len( VIM_MATCHES_FOR_WINDOW[ current_window ] ) + 1
+    self.group = group
+    self.pattern = pattern
+
+
+  def __eq__( self, other ) -> bool:
+    return self.group == other.group and self.pattern == other.pattern
+
+
+  def __repr__( self ):
+    return f"VimMatch( group = '{ self.group }', pattern = '{ self.pattern }' )"
+
+
+  def __getitem__( self, key: str ) -> Optional[Union[int, str]]:
+    if key == 'group':
+      return self.group
+    elif key == 'id':
+      return self.id
+
+
 def _MockVimMatchEval( value: str ) -> Optional[Union[int, List[VimMatch]]]:
   current_window = VIM_MOCK.current.window.number
 
@@ -298,6 +322,80 @@ def _MockVimEval( value: str ) -> Any:
     return len( match.group( 'text' ) )
 
   raise VimError( f'Unexpected evaluation: { value }' )
+
+
+class VimBuffer:
+  """An object that looks like a vim.buffer object:
+   - |name|     : full path of the buffer with symbolic links resolved;
+   - |number|   : buffer number;
+   - |contents| : list of lines representing the buffer contents;
+   - |filetype| : buffer filetype. Empty string if no filetype is set;
+   - |modified| : True if the buffer has unsaved changes, False otherwise;
+   - |bufhidden|: value of the 'bufhidden' option (see :h bufhidden);
+   - |omnifunc| : omni completion function used by the buffer. Must be a Python
+                  function that takes the same arguments and returns the same
+                  values as a Vim completion function (:h complete-functions).
+                  Example:
+
+                    def Omnifunc( findstart, base ):
+                      if findstart:
+                        return 5
+                      return [ 'a', 'b', 'c' ]"""
+
+  def __init__( self, name: str,
+                      number: int = 1,
+                      contents: Union[List[str], List[bytes]] = [ '' ],
+                      filetype: str = '',
+                      modified: bool = False,
+                      bufhidden: str = '',
+                      omnifunc: Optional[Callable] = None,
+                      visual_start: Optional[List[int]] = None,
+                      visual_end: Optional[List[int]] = None ) -> None:
+    self.name = os.path.realpath( name ) if name else ''
+    self.number = number
+    self.contents = contents
+    self.filetype = filetype
+    self.modified = modified
+    self.bufhidden = bufhidden
+    self.omnifunc = omnifunc
+    self.omnifunc_name = omnifunc.__name__ if omnifunc else ''
+    self.changedtick = 1
+    self.options = {
+     'mod': modified,
+     'bh': bufhidden
+    }
+    self.visual_start = visual_start
+    self.visual_end = visual_end
+
+
+  def __getitem__( self, index: int ) -> Union[str, bytes]:
+    """Returns the bytes for a given line at index |index|."""
+    return self.contents[ index ]
+
+
+  def __len__( self ) -> int:
+    return len( self.contents )
+
+
+  def __setitem__( self, key: slice, value: List[bytes] ) -> None:
+    return self.contents.__setitem__( key, value )
+
+
+  def GetLines( self ) -> List[str]:
+    """Returns the contents of the buffer as a list of unicode strings."""
+    return [ ToUnicode( x ) for x in self.contents ]
+
+
+  def mark( self, name: str ) -> Optional[List[int]]:
+    if name == '<':
+      return self.visual_start
+    if name == '>':
+      return self.visual_end
+    raise ValueError( f'Unexpected mark: { name }' )
+
+
+  def __repr__( self ):
+    return f"VimBuffer( name = '{ self.name }', number = { self.number } )"
 
 
 def _MockWipeoutBuffer( buffer_number: int ) -> VimBuffer:
@@ -386,80 +484,6 @@ def _MockVimOptions( option: str ) -> bytes:
   return None
 
 
-class VimBuffer:
-  """An object that looks like a vim.buffer object:
-   - |name|     : full path of the buffer with symbolic links resolved;
-   - |number|   : buffer number;
-   - |contents| : list of lines representing the buffer contents;
-   - |filetype| : buffer filetype. Empty string if no filetype is set;
-   - |modified| : True if the buffer has unsaved changes, False otherwise;
-   - |bufhidden|: value of the 'bufhidden' option (see :h bufhidden);
-   - |omnifunc| : omni completion function used by the buffer. Must be a Python
-                  function that takes the same arguments and returns the same
-                  values as a Vim completion function (:h complete-functions).
-                  Example:
-
-                    def Omnifunc( findstart, base ):
-                      if findstart:
-                        return 5
-                      return [ 'a', 'b', 'c' ]"""
-
-  def __init__( self, name: str,
-                      number: int = 1,
-                      contents: Union[List[str], List[bytes]] = [ '' ],
-                      filetype: str = '',
-                      modified: bool = False,
-                      bufhidden: str = '',
-                      omnifunc: Optional[Callable] = None,
-                      visual_start: Optional[List[int]] = None,
-                      visual_end: Optional[List[int]] = None ) -> None:
-    self.name = os.path.realpath( name ) if name else ''
-    self.number = number
-    self.contents = contents
-    self.filetype = filetype
-    self.modified = modified
-    self.bufhidden = bufhidden
-    self.omnifunc = omnifunc
-    self.omnifunc_name = omnifunc.__name__ if omnifunc else ''
-    self.changedtick = 1
-    self.options = {
-     'mod': modified,
-     'bh': bufhidden
-    }
-    self.visual_start = visual_start
-    self.visual_end = visual_end
-
-
-  def __getitem__( self, index: int ) -> Union[str, bytes]:
-    """Returns the bytes for a given line at index |index|."""
-    return self.contents[ index ]
-
-
-  def __len__( self ) -> int:
-    return len( self.contents )
-
-
-  def __setitem__( self, key: slice, value: List[bytes] ) -> None:
-    return self.contents.__setitem__( key, value )
-
-
-  def GetLines( self ) -> List[str]:
-    """Returns the contents of the buffer as a list of unicode strings."""
-    return [ ToUnicode( x ) for x in self.contents ]
-
-
-  def mark( self, name: str ) -> Optional[List[int]]:
-    if name == '<':
-      return self.visual_start
-    if name == '>':
-      return self.visual_end
-    raise ValueError( f'Unexpected mark: { name }' )
-
-
-  def __repr__( self ):
-    return f"VimBuffer( name = '{ self.name }', number = { self.number } )"
-
-
 class VimBuffers:
   """An object that looks like a vim.buffers object."""
 
@@ -542,30 +566,6 @@ class VimCurrent:
     self.line = self.buffer.contents[ current_window.cursor[ 0 ] - 1 ]
 
 
-class VimMatch:
-
-  def __init__( self, group: str, pattern: str ) -> None:
-    current_window = VIM_MOCK.current.window.number
-    self.id = len( VIM_MATCHES_FOR_WINDOW[ current_window ] ) + 1
-    self.group = group
-    self.pattern = pattern
-
-
-  def __eq__( self, other: VimMatch ) -> bool:
-    return self.group == other.group and self.pattern == other.pattern
-
-
-  def __repr__( self ):
-    return f"VimMatch( group = '{ self.group }', pattern = '{ self.pattern }' )"
-
-
-  def __getitem__( self, key: str ) -> Optional[Union[int, str]]:
-    if key == 'group':
-      return self.group
-    elif key == 'id':
-      return self.id
-
-
 class VimSign:
 
   def __init__( self, sign_id: int, line: int, name: str, bufnr: int ) -> None:
@@ -575,7 +575,7 @@ class VimSign:
     self.bufnr = bufnr
 
 
-  def __eq__( self, other: VimSign ) -> bool:
+  def __eq__( self, other ) -> bool:
     return ( self.id == other.id and
              self.line == other.line and
              self.name == other.name and
