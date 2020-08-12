@@ -22,27 +22,30 @@ from ycm.client.base_request import ( BaseRequest, DisplayServerException,
                                       MakeServerException )
 from ycm import vimsupport
 from ycm.vimsupport import NO_COMPLETIONS
+from typing import Any, Dict, List, Optional, Union
+from unittest.mock import MagicMock
+from ycmd.request_wrap import RequestWrap
 
 _logger = logging.getLogger( __name__ )
 
 
 class CompletionRequest( BaseRequest ):
-  def __init__( self, request_data ):
+  def __init__( self, request_data: Optional[Union[RequestWrap, Dict[str, int], Dict[str, Union[str, int, Dict[str, Dict[str, Union[List[str], str]]], bool]]]] ) -> None:
     super( CompletionRequest, self ).__init__()
     self.request_data = request_data
     self._response_future = None
 
 
-  def Start( self ):
+  def Start( self ) -> None:
     self._response_future = self.PostDataToHandlerAsync( self.request_data,
                                                          'completions' )
 
 
-  def Done( self ):
+  def Done( self ) -> MagicMock:
     return bool( self._response_future ) and self._response_future.done()
 
 
-  def _RawResponse( self ):
+  def _RawResponse( self ) -> Dict[str, Union[List[Dict[str, Union[str, Dict[str, str]]]], int]]:
     if not self._response_future:
       return NO_COMPLETIONS
 
@@ -64,14 +67,14 @@ class CompletionRequest( BaseRequest ):
     return response
 
 
-  def Response( self ):
+  def Response( self ) -> Dict[str, Union[List[Dict[str, Union[int, str]]], int]]:
     response = self._RawResponse()
     response[ 'completions' ] = _ConvertCompletionDatasToVimDatas(
         response[ 'completions' ] )
     return response
 
 
-  def OnCompleteDone( self ):
+  def OnCompleteDone( self ) -> None:
     if not self.Done():
       return
 
@@ -81,7 +84,7 @@ class CompletionRequest( BaseRequest ):
       self._OnCompleteDone_FixIt()
 
 
-  def _GetExtraDataUserMayHaveCompleted( self ):
+  def _GetExtraDataUserMayHaveCompleted( self ) -> Any:
     completed_item = vimsupport.GetVariableValue( 'v:completed_item' )
 
     # If Vim supports user_data (8.0.1493 or later), we actually know the
@@ -99,7 +102,7 @@ class CompletionRequest( BaseRequest ):
     return []
 
 
-  def _OnCompleteDone_Csharp( self ):
+  def _OnCompleteDone_Csharp( self ) -> None:
     extra_datas = self._GetExtraDataUserMayHaveCompleted()
     namespaces = [ _GetRequiredNamespaceImport( c ) for c in extra_datas ]
     namespaces = [ n for n in namespaces if n ]
@@ -118,7 +121,7 @@ class CompletionRequest( BaseRequest ):
     vimsupport.InsertNamespace( namespace )
 
 
-  def _OnCompleteDone_FixIt( self ):
+  def _OnCompleteDone_FixIt( self ) -> None:
     extra_datas = self._GetExtraDataUserMayHaveCompleted()
     fixit_completions = [ _GetFixItCompletion( c ) for c in extra_datas ]
     fixit_completions = [ f for f in fixit_completions if f ]
@@ -138,15 +141,15 @@ class CompletionRequest( BaseRequest ):
       vimsupport.ReplaceChunks( fixit[ 'chunks' ], silent=True )
 
 
-def _GetRequiredNamespaceImport( extra_data ):
+def _GetRequiredNamespaceImport( extra_data: Dict[str, Optional[str]] ) -> Optional[str]:
   return extra_data.get( 'required_namespace_import' )
 
 
-def _GetFixItCompletion( extra_data ):
+def _GetFixItCompletion( extra_data: Dict[str, Union[List[Any], List[Dict[str, List[Any]]], List[Dict[str, str]]]] ) -> Optional[Union[List[Dict[str, str]], List[Dict[str, List[Any]]]]]:
   return extra_data.get( 'fixits' )
 
 
-def _FilterToMatchingCompletions( completed_item, completions ):
+def _FilterToMatchingCompletions( completed_item: Dict[str, bytes], completions: Any ) -> Any:
   """Filter to completions matching the item Vim said was completed"""
   match_keys = [ 'word', 'abbr', 'menu', 'info' ]
   matched_completions = []
@@ -162,7 +165,7 @@ def _FilterToMatchingCompletions( completed_item, completions ):
   return matched_completions
 
 
-def _GetCompletionInfoField( completion_data ):
+def _GetCompletionInfoField( completion_data: Dict[str, Any] ) -> str:
   info = completion_data.get( 'detailed_info', '' )
 
   if 'extra_data' in completion_data:
@@ -178,7 +181,7 @@ def _GetCompletionInfoField( completion_data ):
   return info.replace( '\x00', '' )
 
 
-def _ConvertCompletionDataToVimData( completion_data ):
+def _ConvertCompletionDataToVimData( completion_data: Dict[str, Any] ) -> Dict[str, Union[int, str]]:
   # See :h complete-items for a description of the dictionary fields.
   extra_menu_info = completion_data.get( 'extra_menu_info', '' )
   preview_info = _GetCompletionInfoField( completion_data )
@@ -218,5 +221,5 @@ def _ConvertCompletionDataToVimData( completion_data ):
   }
 
 
-def _ConvertCompletionDatasToVimDatas( response_data ):
+def _ConvertCompletionDatasToVimDatas( response_data: List[Dict[str, Union[str, Dict[str, str]]]] ) -> List[Dict[str, Union[int, str]]]:
   return [ _ConvertCompletionDataToVimData( x ) for x in response_data ]

@@ -16,16 +16,17 @@
 # along with YouCompleteMe.  If not, see <http://www.gnu.org/licenses/>.
 
 from ycm.client.base_request import BaseRequest, BuildRequestData
+from typing import Any, Dict, List, Optional, Union
 
 
 class DebugInfoRequest( BaseRequest ):
-  def __init__( self, extra_data = None ):
+  def __init__( self, extra_data: Optional[Dict[str, Dict[str, str]]] = None ) -> None:
     super( DebugInfoRequest, self ).__init__()
     self._extra_data = extra_data
     self._response = None
 
 
-  def Start( self ):
+  def Start( self ) -> None:
     request_data = BuildRequestData()
     if self._extra_data:
       request_data.update( self._extra_data )
@@ -34,11 +35,11 @@ class DebugInfoRequest( BaseRequest ):
                                              display_message = False )
 
 
-  def Response( self ):
+  def Response( self ) -> Optional[Union[Dict[str, Union[Dict[str, str], Dict[str, Union[bool, str]], Dict[str, Union[str, List[Dict[str, Optional[Union[str, bool, List[str], List[Union[Dict[str, str], Dict[str, Optional[str]], Dict[str, Union[bool, str]]]]]]]]]]]], Dict[str, Optional[Union[Dict[str, str], Dict[str, Union[bool, str]]]]], Dict[str, Optional[Union[Dict[str, str], Dict[str, Union[bool, str]], Dict[str, Optional[bool]]]]]]]:
     return self._response
 
 
-def FormatDebugInfoResponse( response ):
+def FormatDebugInfoResponse( response: Any ) -> str:
   if not response:
     return 'Server errored, no debug info from server\n'
   message = _FormatYcmdDebugInfo( response )
@@ -48,7 +49,7 @@ def FormatDebugInfoResponse( response ):
   return message
 
 
-def _FormatYcmdDebugInfo( ycmd ):
+def _FormatYcmdDebugInfo( ycmd: Dict[str, Any] ) -> str:
   python = ycmd[ 'python' ]
   clang = ycmd[ 'clang' ]
   message = (
@@ -69,7 +70,7 @@ def _FormatYcmdDebugInfo( ycmd ):
   return message
 
 
-def _FormatCompleterDebugInfo( completer ):
+def _FormatCompleterDebugInfo( completer: Dict[str, Any] ) -> str:
   message = f'{ completer[ "name" ] } completer debug information:\n'
   for server in completer[ 'servers' ]:
     name = server[ 'name' ]
@@ -99,7 +100,7 @@ def _FormatCompleterDebugInfo( completer ):
   return message
 
 
-def SendDebugInfoRequest( extra_data = None ):
+def SendDebugInfoRequest( extra_data: Optional[Dict[str, Dict[str, str]]] = None ) -> Optional[Union[Dict[str, Union[Dict[str, str], Dict[str, Union[bool, str]], Dict[str, Union[str, List[Dict[str, Optional[Union[str, bool, List[str], List[Union[Dict[str, str], Dict[str, Optional[str]], Dict[str, Union[bool, str]]]]]]]]]]]], Dict[str, Optional[Union[Dict[str, str], Dict[str, Union[bool, str]]]]], Dict[str, Optional[Union[Dict[str, str], Dict[str, Union[bool, str]], Dict[str, Optional[bool]]]]]]]:
   request = DebugInfoRequest( extra_data )
   # This is a blocking call.
   request.Start()

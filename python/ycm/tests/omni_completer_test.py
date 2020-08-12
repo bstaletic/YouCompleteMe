@@ -25,6 +25,8 @@ MockVimModule()
 
 from ycm import vimsupport
 from ycm.tests import YouCompleteMeInstance
+from typing import Dict, List, Union
+from ycm.youcompleteme import YouCompleteMe
 
 FILETYPE = 'ycmtest'
 TRIGGERS = {
@@ -34,7 +36,7 @@ TRIGGERS = {
 
 @YouCompleteMeInstance( { 'g:ycm_cache_omnifunc': 1,
                           'g:ycm_semantic_triggers': TRIGGERS } )
-def OmniCompleter_GetCompletions_Cache_List_test( ycm ):
+def OmniCompleter_GetCompletions_Cache_List_test( ycm: YouCompleteMe ) -> None:
   def Omnifunc( findstart, base ):
     if findstart:
       return 5
@@ -62,7 +64,7 @@ def OmniCompleter_GetCompletions_Cache_List_test( ycm ):
 
 @YouCompleteMeInstance( { 'g:ycm_cache_omnifunc': 1,
                           'g:ycm_semantic_triggers': TRIGGERS } )
-def OmniCompleter_GetCompletions_Cache_ListFilter_test( ycm ):
+def OmniCompleter_GetCompletions_Cache_ListFilter_test( ycm: YouCompleteMe ) -> None:
   def Omnifunc( findstart, base ):
     if findstart:
       return 5
@@ -86,7 +88,7 @@ def OmniCompleter_GetCompletions_Cache_ListFilter_test( ycm ):
 
 @YouCompleteMeInstance( { 'g:ycm_cache_omnifunc': 0,
                           'g:ycm_semantic_triggers': TRIGGERS } )
-def OmniCompleter_GetCompletions_NoCache_List_test( ycm ):
+def OmniCompleter_GetCompletions_NoCache_List_test( ycm: YouCompleteMe ) -> None:
   def Omnifunc( findstart, base ):
     if findstart:
       return 5
@@ -114,7 +116,7 @@ def OmniCompleter_GetCompletions_NoCache_List_test( ycm ):
 
 @YouCompleteMeInstance( { 'g:ycm_cache_omnifunc': 0,
                           'g:ycm_semantic_triggers': TRIGGERS } )
-def OmniCompleter_GetCompletions_NoCache_ListFilter_test( ycm ):
+def OmniCompleter_GetCompletions_NoCache_ListFilter_test( ycm: YouCompleteMe ) -> None:
   def Omnifunc( findstart, base ):
     if findstart:
       return 5
@@ -144,7 +146,7 @@ def OmniCompleter_GetCompletions_NoCache_ListFilter_test( ycm ):
 
 @YouCompleteMeInstance( { 'g:ycm_cache_omnifunc': 0,
                           'g:ycm_semantic_triggers': TRIGGERS } )
-def OmniCompleter_GetCompletions_NoCache_UseFindStart_test( ycm ):
+def OmniCompleter_GetCompletions_NoCache_UseFindStart_test( ycm: YouCompleteMe ) -> None:
   def Omnifunc( findstart, base ):
     if findstart:
       return 0
@@ -174,7 +176,7 @@ def OmniCompleter_GetCompletions_NoCache_UseFindStart_test( ycm ):
 
 @YouCompleteMeInstance( { 'g:ycm_cache_omnifunc': 1,
                           'g:ycm_semantic_triggers': TRIGGERS } )
-def OmniCompleter_GetCompletions_Cache_UseFindStart_test( ycm ):
+def OmniCompleter_GetCompletions_Cache_UseFindStart_test( ycm: YouCompleteMe ) -> None:
   def Omnifunc( findstart, base ):
     if findstart:
       return 0
@@ -200,7 +202,7 @@ def OmniCompleter_GetCompletions_Cache_UseFindStart_test( ycm ):
 
 @YouCompleteMeInstance( { 'g:ycm_cache_omnifunc': 1,
                           'g:ycm_semantic_triggers': TRIGGERS } )
-def OmniCompleter_GetCompletions_Cache_Object_test( ycm ):
+def OmniCompleter_GetCompletions_Cache_Object_test( ycm: YouCompleteMe ) -> None:
   def Omnifunc( findstart, base ):
     if findstart:
       return 5
@@ -224,7 +226,7 @@ def OmniCompleter_GetCompletions_Cache_Object_test( ycm ):
 
 @YouCompleteMeInstance( { 'g:ycm_cache_omnifunc': 1,
                           'g:ycm_semantic_triggers': TRIGGERS } )
-def OmniCompleter_GetCompletions_Cache_ObjectList_test( ycm ):
+def OmniCompleter_GetCompletions_Cache_ObjectList_test( ycm: YouCompleteMe ) -> None:
   def Omnifunc( findstart, base ):
     if findstart:
       return 5
@@ -270,7 +272,7 @@ def OmniCompleter_GetCompletions_Cache_ObjectList_test( ycm ):
 
 @YouCompleteMeInstance( { 'g:ycm_cache_omnifunc': 0,
                           'g:ycm_semantic_triggers': TRIGGERS } )
-def OmniCompleter_GetCompletions_NoCache_ObjectList_test( ycm ):
+def OmniCompleter_GetCompletions_NoCache_ObjectList_test( ycm: YouCompleteMe ) -> None:
   def Omnifunc( findstart, base ):
     if findstart:
       return 5
@@ -325,7 +327,7 @@ def OmniCompleter_GetCompletions_NoCache_ObjectList_test( ycm ):
 
 @YouCompleteMeInstance( { 'g:ycm_cache_omnifunc': 1,
                           'g:ycm_semantic_triggers': TRIGGERS } )
-def OmniCompleter_GetCompletions_Cache_ObjectListObject_test( ycm ):
+def OmniCompleter_GetCompletions_Cache_ObjectListObject_test( ycm: YouCompleteMe ) -> None:
   def Omnifunc( findstart, base ):
     if findstart:
       return 5
@@ -371,7 +373,7 @@ def OmniCompleter_GetCompletions_Cache_ObjectListObject_test( ycm ):
 
 @YouCompleteMeInstance( { 'g:ycm_cache_omnifunc': 0,
                           'g:ycm_semantic_triggers': TRIGGERS } )
-def OmniCompleter_GetCompletions_NoCache_ObjectListObject_test( ycm ):
+def OmniCompleter_GetCompletions_NoCache_ObjectListObject_test( ycm: YouCompleteMe ) -> None:
   def Omnifunc( findstart, base ):
     if findstart:
       return 5
@@ -426,7 +428,7 @@ def OmniCompleter_GetCompletions_NoCache_ObjectListObject_test( ycm ):
 
 @YouCompleteMeInstance( { 'g:ycm_cache_omnifunc': 1,
                           'g:ycm_semantic_triggers': TRIGGERS } )
-def OmniCompleter_GetCompletions_Cache_List_Unicode_test( ycm ):
+def OmniCompleter_GetCompletions_Cache_List_Unicode_test( ycm: YouCompleteMe ) -> None:
   def Omnifunc( findstart, base ):
     if findstart:
       return 12
@@ -454,7 +456,7 @@ def OmniCompleter_GetCompletions_Cache_List_Unicode_test( ycm ):
 
 @YouCompleteMeInstance( { 'g:ycm_cache_omnifunc': 0,
                           'g:ycm_semantic_triggers': TRIGGERS } )
-def OmniCompleter_GetCompletions_NoCache_List_Unicode_test( ycm ):
+def OmniCompleter_GetCompletions_NoCache_List_Unicode_test( ycm: YouCompleteMe ) -> None:
   def Omnifunc( findstart, base ):
     if findstart:
       return 12
@@ -482,7 +484,7 @@ def OmniCompleter_GetCompletions_NoCache_List_Unicode_test( ycm ):
 
 @YouCompleteMeInstance( { 'g:ycm_cache_omnifunc': 1,
                           'g:ycm_semantic_triggers': TRIGGERS } )
-def OmniCompleter_GetCompletions_Cache_List_Filter_Unicode_test( ycm ):
+def OmniCompleter_GetCompletions_Cache_List_Filter_Unicode_test( ycm: YouCompleteMe ) -> None:
   def Omnifunc( findstart, base ):
     if findstart:
       return 12
@@ -506,7 +508,7 @@ def OmniCompleter_GetCompletions_Cache_List_Filter_Unicode_test( ycm ):
 
 @YouCompleteMeInstance( { 'g:ycm_cache_omnifunc': 0,
                           'g:ycm_semantic_triggers': TRIGGERS } )
-def OmniCompleter_GetCompletions_NoCache_List_Filter_Unicode_test( ycm ):
+def OmniCompleter_GetCompletions_NoCache_List_Filter_Unicode_test( ycm: YouCompleteMe ) -> None:
   def Omnifunc( findstart, base ):
     if findstart:
       return 12
@@ -530,7 +532,7 @@ def OmniCompleter_GetCompletions_NoCache_List_Filter_Unicode_test( ycm ):
 
 @YouCompleteMeInstance( { 'g:ycm_cache_omnifunc': 1,
                           'g:ycm_semantic_triggers': TRIGGERS } )
-def OmniCompleter_GetCompletions_Cache_ObjectList_Unicode_test( ycm ):
+def OmniCompleter_GetCompletions_Cache_ObjectList_Unicode_test( ycm: YouCompleteMe ) -> None:
   def Omnifunc( findstart, base ):
     if findstart:
       return 12
@@ -576,7 +578,7 @@ def OmniCompleter_GetCompletions_Cache_ObjectList_Unicode_test( ycm ):
 
 @YouCompleteMeInstance( { 'g:ycm_cache_omnifunc': 1,
                           'g:ycm_semantic_triggers': TRIGGERS } )
-def OmniCompleter_GetCompletions_Cache_ObjectListObject_Unicode_test( ycm ):
+def OmniCompleter_GetCompletions_Cache_ObjectListObject_Unicode_test( ycm: YouCompleteMe ) -> None:
   def Omnifunc( findstart, base ):
     if findstart:
       return 12
@@ -639,7 +641,7 @@ def OmniCompleter_GetCompletions_Cache_ObjectListObject_Unicode_test( ycm ):
 @YouCompleteMeInstance( { 'g:ycm_cache_omnifunc': 1,
                           'g:ycm_semantic_triggers': TRIGGERS } )
 def OmniCompleter_GetCompletions_RestoreCursorPositionAfterOmnifuncCall_test(
-  ycm ):
+  ycm: YouCompleteMe ) -> None:
 
   # This omnifunc moves the cursor to the test definition like
   # ccomplete#Complete would.
@@ -673,7 +675,7 @@ def OmniCompleter_GetCompletions_RestoreCursorPositionAfterOmnifuncCall_test(
 
 @YouCompleteMeInstance( { 'g:ycm_cache_omnifunc': 1,
                           'g:ycm_semantic_triggers': TRIGGERS } )
-def OmniCompleter_GetCompletions_MoveCursorPositionAtStartColumn_test( ycm ):
+def OmniCompleter_GetCompletions_MoveCursorPositionAtStartColumn_test( ycm: YouCompleteMe ) -> None:
   # This omnifunc relies on the cursor being moved at the start column when
   # called the second time like LanguageClient#complete from the
   # LanguageClient-neovim plugin.
@@ -706,10 +708,10 @@ def OmniCompleter_GetCompletions_MoveCursorPositionAtStartColumn_test( ycm ):
     )
 
 
-def StartColumnCompliance( ycm,
-                           omnifunc_start_column,
-                           ycm_completions,
-                           ycm_start_column ):
+def StartColumnCompliance( ycm: YouCompleteMe,
+                           omnifunc_start_column: int,
+                           ycm_completions: List[Dict[str, Union[int, str]]],
+                           ycm_start_column: int ) -> None:
   def Omnifunc( findstart, base ):
     if findstart:
       return omnifunc_start_column
@@ -744,10 +746,10 @@ def StartColumnCompliance( ycm,
    [ 3, [ { 'word': 'foo', 'equal': 1 } ], 3 ]
   ] )
 def OmniCompleter_GetCompletions_StartColumnCompliance_test(
-    ycm,
-    omnifunc_start_column,
-    ycm_completions,
-    ycm_start_column ):
+    ycm: YouCompleteMe,
+    omnifunc_start_column: int,
+    ycm_completions: List[Dict[str, Union[int, str]]],
+    ycm_start_column: int ) -> None:
   StartColumnCompliance( ycm,
                          omnifunc_start_column,
                          ycm_completions,
@@ -756,7 +758,7 @@ def OmniCompleter_GetCompletions_StartColumnCompliance_test(
 
 @YouCompleteMeInstance( { 'g:ycm_cache_omnifunc': 0,
                           'g:ycm_semantic_triggers': TRIGGERS } )
-def OmniCompleter_GetCompletions_NoCache_NoSemanticTrigger_test( ycm ):
+def OmniCompleter_GetCompletions_NoCache_NoSemanticTrigger_test( ycm: YouCompleteMe ) -> None:
   def Omnifunc( findstart, base ):
     if findstart:
       return 0
@@ -780,7 +782,7 @@ def OmniCompleter_GetCompletions_NoCache_NoSemanticTrigger_test( ycm ):
 
 @YouCompleteMeInstance( { 'g:ycm_cache_omnifunc': 0,
                           'g:ycm_semantic_triggers': TRIGGERS } )
-def OmniCompleter_GetCompletions_NoCache_ForceSemantic_test( ycm ):
+def OmniCompleter_GetCompletions_NoCache_ForceSemantic_test( ycm: YouCompleteMe ) -> None:
   def Omnifunc( findstart, base ):
     if findstart:
       return 0
@@ -804,7 +806,7 @@ def OmniCompleter_GetCompletions_NoCache_ForceSemantic_test( ycm ):
 
 @YouCompleteMeInstance( { 'g:ycm_cache_omnifunc': 1,
                           'g:ycm_semantic_triggers': TRIGGERS } )
-def OmniCompleter_GetCompletions_ConvertStringsToDictionaries_test( ycm ):
+def OmniCompleter_GetCompletions_ConvertStringsToDictionaries_test( ycm: YouCompleteMe ) -> None:
   def Omnifunc( findstart, base ):
     if findstart:
       return 5
@@ -836,7 +838,7 @@ def OmniCompleter_GetCompletions_ConvertStringsToDictionaries_test( ycm ):
   'g:ycm_cache_omnifunc': 0,
   'g:ycm_filetype_specific_completion_to_disable': { FILETYPE: 1 },
   'g:ycm_semantic_triggers': TRIGGERS } )
-def OmniCompleter_GetCompletions_FiletypeDisabled_SemanticTrigger_test( ycm ):
+def OmniCompleter_GetCompletions_FiletypeDisabled_SemanticTrigger_test( ycm: YouCompleteMe ) -> None:
   def Omnifunc( findstart, base ):
     if findstart:
       return 5
@@ -863,7 +865,7 @@ def OmniCompleter_GetCompletions_FiletypeDisabled_SemanticTrigger_test( ycm ):
   'g:ycm_filetype_specific_completion_to_disable': { '*': 1 },
   'g:ycm_semantic_triggers': TRIGGERS } )
 def OmniCompleter_GetCompletions_AllFiletypesDisabled_SemanticTrigger_test(
-  ycm ):
+  ycm: YouCompleteMe ) -> None:
 
   def Omnifunc( findstart, base ):
     if findstart:
@@ -890,7 +892,7 @@ def OmniCompleter_GetCompletions_AllFiletypesDisabled_SemanticTrigger_test(
   'g:ycm_cache_omnifunc': 0,
   'g:ycm_filetype_specific_completion_to_disable': { FILETYPE: 1 },
   'g:ycm_semantic_triggers': TRIGGERS } )
-def OmniCompleter_GetCompletions_FiletypeDisabled_ForceSemantic_test( ycm ):
+def OmniCompleter_GetCompletions_FiletypeDisabled_ForceSemantic_test( ycm: YouCompleteMe ) -> None:
   def Omnifunc( findstart, base ):
     if findstart:
       return 5
@@ -920,7 +922,7 @@ def OmniCompleter_GetCompletions_FiletypeDisabled_ForceSemantic_test( ycm ):
   'g:ycm_cache_omnifunc': 0,
   'g:ycm_filetype_specific_completion_to_disable': { '*': 1 },
   'g:ycm_semantic_triggers': TRIGGERS } )
-def OmniCompleter_GetCompletions_AllFiletypesDisabled_ForceSemantic_test( ycm ):
+def OmniCompleter_GetCompletions_AllFiletypesDisabled_ForceSemantic_test( ycm: YouCompleteMe ) -> None:
   def Omnifunc( findstart, base ):
     if findstart:
       return 5

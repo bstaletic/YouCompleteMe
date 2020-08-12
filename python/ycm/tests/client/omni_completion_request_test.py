@@ -19,9 +19,10 @@ from unittest.mock import MagicMock
 from hamcrest import assert_that, has_entries
 
 from ycm.client.omni_completion_request import OmniCompletionRequest
+from typing import Dict, List
 
 
-def BuildOmnicompletionRequest( results, start_column = 1 ):
+def BuildOmnicompletionRequest( results: List[Dict[str, str]], start_column: int = 1 ) -> OmniCompletionRequest:
   omni_completer = MagicMock()
   omni_completer.ComputeCandidates = MagicMock( return_value = results )
 
@@ -36,13 +37,13 @@ def BuildOmnicompletionRequest( results, start_column = 1 ):
   return request
 
 
-def Done_AlwaysTrue_test():
+def Done_AlwaysTrue_test() -> None:
   request = BuildOmnicompletionRequest( [] )
 
   assert_that( request.Done() )
 
 
-def Response_FromOmniCompleter_test():
+def Response_FromOmniCompleter_test() -> None:
   results = [ { "word": "test" } ]
   request = BuildOmnicompletionRequest( results )
 

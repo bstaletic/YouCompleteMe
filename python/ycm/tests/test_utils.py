@@ -16,7 +16,7 @@
 # along with YouCompleteMe.  If not, see <http://www.gnu.org/licenses/>.
 
 from collections import defaultdict, namedtuple
-from unittest.mock import DEFAULT, MagicMock, patch
+from unittest.mock import _SentinelObject, DEFAULT, MagicMock, patch
 from hamcrest import assert_that, equal_to
 import contextlib
 import functools
@@ -29,6 +29,7 @@ import sys
 from unittest import skipIf
 
 from ycmd.utils import GetCurrentDirectory, OnMac, OnWindows, ToUnicode
+from typing import Any, Callable, Iterator, List, Optional, Tuple, Union
 
 
 BUFNR_REGEX = re.compile( '^bufnr\\(\'(?P<buffer_filename>.+)\', ([01])\\)$' )
@@ -104,7 +105,7 @@ WindowsAndMacOnly = skipIf( not OnWindows() or not OnMac(),
 
 
 @contextlib.contextmanager
-def CurrentWorkingDirectory( path ):
+def CurrentWorkingDirectory( path: str ) -> Iterator[None]:
   old_cwd = GetCurrentDirectory()
   os.chdir( path )
   try:
@@ -113,21 +114,21 @@ def CurrentWorkingDirectory( path ):
     os.chdir( old_cwd )
 
 
-def _MockGetBufferNumber( buffer_filename ):
+def _MockGetBufferNumber( buffer_filename: str ) -> int:
   for vim_buffer in VIM_MOCK.buffers:
     if vim_buffer.name == buffer_filename:
       return vim_buffer.number
   return -1
 
 
-def _MockGetBufferWindowNumber( buffer_number ):
+def _MockGetBufferWindowNumber( buffer_number: int ) -> int:
   for window in VIM_MOCK.windows:
     if window.buffer.number == buffer_number:
       return window.number
   return -1
 
 
-def _MockGetBufferVariable( buffer_number, option ):
+def _MockGetBufferVariable( buffer_number: int, option: str ) -> Union[int, str]:
   for vim_buffer in VIM_MOCK.buffers:
     if vim_buffer.number == buffer_number:
       if option == '&mod':
@@ -142,7 +143,7 @@ def _MockGetBufferVariable( buffer_number, option ):
   return ''
 
 
-def _MockVimBufferEval( value ):
+def _MockVimBufferEval( value: str ) -> Any:
   if value == '&omnifunc':
     return VIM_MOCK.current.buffer.omnifunc_name
 
@@ -177,7 +178,7 @@ def _MockVimBufferEval( value ):
   return None
 
 
-def _MockVimWindowEval( value ):
+def _MockVimWindowEval( value: str ) -> None:
   if value == 'winnr("#")':
     # For simplicity, we always assume there is no previous window.
     return 0
@@ -185,7 +186,7 @@ def _MockVimWindowEval( value ):
   return None
 
 
-def _MockVimOptionsEval( value ):
+def _MockVimOptionsEval( value: str ) -> Any:
   result = VIM_OPTIONS.get( value )
   if result is not None:
     return result
@@ -205,7 +206,7 @@ def _MockVimOptionsEval( value ):
   return None
 
 
-def _MockVimFunctionsEval( value ):
+def _MockVimFunctionsEval( value: str ) -> Optional[Union[int, str, List[str]]]:
   if value == 'tempname()':
     return '_TEMP_FILE_'
 
@@ -218,7 +219,7 @@ def _MockVimFunctionsEval( value ):
   return None
 
 
-def _MockVimMatchEval( value ):
+def _MockVimMatchEval( value: str ) -> Optional[Union[int, List[VimMatch]]]:
   current_window = VIM_MOCK.current.window.number
 
   if value == 'getmatches()':
@@ -245,7 +246,7 @@ def _MockVimMatchEval( value ):
   return None
 
 
-def _MockVimVersionEval( value ):
+def _MockVimVersionEval( value: str ) -> Optional[Union[int, bool]]:
   match = HAS_PATCH_REGEX.search( value )
   if match:
     if not isinstance( VIM_VERSION, Version ):
@@ -260,7 +261,7 @@ def _MockVimVersionEval( value ):
   return None
 
 
-def _MockVimEval( value ):
+def _MockVimEval( value: str ) -> Any:
   result = _MockVimOptionsEval( value )
   if result is not None:
     return result
@@ -299,7 +300,7 @@ def _MockVimEval( value ):
   raise VimError( f'Unexpected evaluation: { value }' )
 
 
-def _MockWipeoutBuffer( buffer_number ):
+def _MockWipeoutBuffer( buffer_number: int ) -> VimBuffer:
   buffers = VIM_MOCK.buffers
 
   for index, buffer in enumerate( buffers ):
@@ -307,7 +308,7 @@ def _MockWipeoutBuffer( buffer_number ):
       return buffers.pop( index )
 
 
-def _MockSignCommand( command ):
+def _MockSignCommand( command: str ) -> bool:
   match = SIGN_LIST_REGEX.search( command )
   if match and REDIR[ 'status' ]:
     bufnr = int( match.group( 'bufnr' ) )
@@ -343,7 +344,7 @@ def _MockSignCommand( command ):
   return False
 
 
-def _MockVimCommand( command ):
+def _MockVimCommand( command: str ) -> Optional[Union[VimBuffer, _SentinelObject]]:
   match = BWIPEOUT_REGEX.search( command )
   if match:
     return _MockWipeoutBuffer( int( match.group( 1 ) ) )
@@ -377,7 +378,7 @@ def _MockVimCommand( command ):
   return DEFAULT
 
 
-def _MockVimOptions( option ):
+def _MockVimOptions( option: str ) -> bytes:
   result = VIM_OPTIONS.get( '&' + option )
   if result is not None:
     return result
@@ -403,15 +404,15 @@ class VimBuffer:
                         return 5
                       return [ 'a', 'b', 'c' ]"""
 
-  def __init__( self, name,
-                      number = 1,
-                      contents = [ '' ],
-                      filetype = '',
-                      modified = False,
-                      bufhidden = '',
-                      omnifunc = None,
-                      visual_start = None,
-                      visual_end = None ):
+  def __init__( self, name: str,
+                      number: int = 1,
+                      contents: Union[List[str], List[bytes]] = [ '' ],
+                      filetype: str = '',
+                      modified: bool = False,
+                      bufhidden: str = '',
+                      omnifunc: Optional[Callable] = None,
+                      visual_start: Optional[List[int]] = None,
+                      visual_end: Optional[List[int]] = None ) -> None:
     self.name = os.path.realpath( name ) if name else ''
     self.number = number
     self.contents = contents
@@ -429,25 +430,25 @@ class VimBuffer:
     self.visual_end = visual_end
 
 
-  def __getitem__( self, index ):
+  def __getitem__( self, index: int ) -> Union[str, bytes]:
     """Returns the bytes for a given line at index |index|."""
     return self.contents[ index ]
 
 
-  def __len__( self ):
+  def __len__( self ) -> int:
     return len( self.contents )
 
 
-  def __setitem__( self, key, value ):
+  def __setitem__( self, key: slice, value: List[bytes] ) -> None:
     return self.contents.__setitem__( key, value )
 
 
-  def GetLines( self ):
+  def GetLines( self ) -> List[str]:
     """Returns the contents of the buffer as a list of unicode strings."""
     return [ ToUnicode( x ) for x in self.contents ]
 
 
-  def mark( self, name ):
+  def mark( self, name: str ) -> Optional[List[int]]:
     if name == '<':
       return self.visual_start
     if name == '>':
@@ -462,12 +463,12 @@ class VimBuffer:
 class VimBuffers:
   """An object that looks like a vim.buffers object."""
 
-  def __init__( self, buffers ):
+  def __init__( self, buffers: List[VimBuffer] ) -> None:
     """|buffers| is a list of VimBuffer objects."""
     self._buffers = buffers
 
 
-  def __getitem__( self, number ):
+  def __getitem__( self, number: int ) -> VimBuffer:
     """Emulates vim.buffers[ number ]"""
     for buffer_object in self._buffers:
       if number == buffer_object.number:
@@ -480,7 +481,7 @@ class VimBuffers:
     return iter( self._buffers )
 
 
-  def pop( self, index ):
+  def pop( self, index: int ) -> VimBuffer:
     return self._buffers.pop( index )
 
 
@@ -491,7 +492,7 @@ class VimWindow:
       window;
     - |cursor|: a tuple corresponding to the cursor position."""
 
-  def __init__( self, number, buffer_object, cursor = None ):
+  def __init__( self, number: int, buffer_object: VimBuffer, cursor: Optional[Tuple[int, int]] = None ) -> None:
     self.number = number
     self.buffer = buffer_object
     self.cursor = cursor
@@ -507,7 +508,7 @@ class VimWindow:
 class VimWindows:
   """An object that looks like a vim.windows object."""
 
-  def __init__( self, buffers, cursor ):
+  def __init__( self, buffers: List[VimBuffer], cursor: Tuple[int, int] ) -> None:
     """|buffers| is a list of VimBuffer objects corresponding to the window
     layout. The first element of that list is assumed to be the current window.
     |cursor| is the cursor position of that window."""
@@ -518,7 +519,7 @@ class VimWindows:
     self._windows = windows
 
 
-  def __getitem__( self, number ):
+  def __getitem__( self, number: int ) -> VimWindow:
     """Emulates vim.windows[ number ]"""
     try:
       return self._windows[ number ]
@@ -535,7 +536,7 @@ class VimCurrent:
   """An object that looks like a vim.current object. |current_window| must be a
   VimWindow object."""
 
-  def __init__( self, current_window ):
+  def __init__( self, current_window: VimWindow ) -> None:
     self.buffer = current_window.buffer
     self.window = current_window
     self.line = self.buffer.contents[ current_window.cursor[ 0 ] - 1 ]
@@ -543,14 +544,14 @@ class VimCurrent:
 
 class VimMatch:
 
-  def __init__( self, group, pattern ):
+  def __init__( self, group: str, pattern: str ) -> None:
     current_window = VIM_MOCK.current.window.number
     self.id = len( VIM_MATCHES_FOR_WINDOW[ current_window ] ) + 1
     self.group = group
     self.pattern = pattern
 
 
-  def __eq__( self, other ):
+  def __eq__( self, other: VimMatch ) -> bool:
     return self.group == other.group and self.pattern == other.pattern
 
 
@@ -558,7 +559,7 @@ class VimMatch:
     return f"VimMatch( group = '{ self.group }', pattern = '{ self.pattern }' )"
 
 
-  def __getitem__( self, key ):
+  def __getitem__( self, key: str ) -> Optional[Union[int, str]]:
     if key == 'group':
       return self.group
     elif key == 'id':
@@ -567,14 +568,14 @@ class VimMatch:
 
 class VimSign:
 
-  def __init__( self, sign_id, line, name, bufnr ):
+  def __init__( self, sign_id: int, line: int, name: str, bufnr: int ) -> None:
     self.id = sign_id
     self.line = line
     self.name = name
     self.bufnr = bufnr
 
 
-  def __eq__( self, other ):
+  def __eq__( self, other: VimSign ) -> bool:
     return ( self.id == other.id and
              self.line == other.line and
              self.name == other.name and
@@ -594,7 +595,7 @@ class VimSign:
 
 
 @contextlib.contextmanager
-def MockVimBuffers( buffers, window_buffers, cursor_position = ( 1, 1 ) ):
+def MockVimBuffers( buffers: List[VimBuffer], window_buffers: List[VimBuffer], cursor_position: Tuple[int, int] = ( 1, 1 ) ) -> Iterator[MagicMock]:
   """Simulates the Vim buffers list |buffers| where |current_buffer| is the
   buffer displayed in the current window and |cursor_position| is the current
   cursor position. All buffers are represented by a VimBuffer object."""
@@ -616,7 +617,7 @@ def MockVimBuffers( buffers, window_buffers, cursor_position = ( 1, 1 ) ):
         yield VIM_MOCK
 
 
-def MockVimModule():
+def MockVimModule() -> MagicMock:
   """The 'vim' module is something that is only present when running inside the
   Vim Python interpreter, so we replace it with a MagicMock for tests. If you
   need to add additional mocks to vim module functions, then use 'patch' from
@@ -650,11 +651,11 @@ def MockVimModule():
 
 class VimError( Exception ):
 
-  def __init__( self, code ):
+  def __init__( self, code: str ) -> None:
     self.code = code
 
 
-  def __str__( self ):
+  def __str__( self ) -> str:
     return repr( self.code )
 
 

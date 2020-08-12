@@ -20,6 +20,8 @@ from ycm import vimsupport
 from ycmd import utils
 from ycmd.completers.completer import Completer
 from ycm.client.base_request import BaseRequest
+from typing import Any, Dict, List, Union
+from ycmd.request_wrap import RequestWrap
 
 OMNIFUNC_RETURNED_BAD_VALUE = 'Omnifunc returned bad value to YCM!'
 OMNIFUNC_NOT_LIST = ( 'Omnifunc did not return a list or a dict with a "words" '
@@ -27,20 +29,20 @@ OMNIFUNC_NOT_LIST = ( 'Omnifunc did not return a list or a dict with a "words" '
 
 
 class OmniCompleter( Completer ):
-  def __init__( self, user_options ):
+  def __init__( self, user_options: Dict[str, Union[str, int, Dict[str, int], Dict[str, List[str]], List[str]]] ) -> None:
     super( OmniCompleter, self ).__init__( user_options )
     self._omnifunc = None
 
 
-  def SupportedFiletypes( self ):
+  def SupportedFiletypes( self ) -> List[Any]:
     return []
 
 
-  def ShouldUseCache( self ):
+  def ShouldUseCache( self ) -> bool:
     return bool( self.user_options[ 'cache_omnifunc' ] )
 
 
-  def ShouldUseNow( self, request_data ):
+  def ShouldUseNow( self, request_data: RequestWrap ) -> bool:
     self._omnifunc = utils.ToUnicode( vim.eval( '&omnifunc' ) )
     if not self._omnifunc:
       return False
@@ -49,7 +51,7 @@ class OmniCompleter( Completer ):
     return self.ShouldUseNowInner( request_data )
 
 
-  def ShouldUseNowInner( self, request_data ):
+  def ShouldUseNowInner( self, request_data: RequestWrap ) -> bool:
     if request_data[ 'force_semantic' ]:
       return True
     disabled_filetypes = self.user_options[
@@ -59,7 +61,7 @@ class OmniCompleter( Completer ):
     return super( OmniCompleter, self ).ShouldUseNowInner( request_data )
 
 
-  def ComputeCandidates( self, request_data ):
+  def ComputeCandidates( self, request_data: RequestWrap ) -> List[Dict[str, Union[int, str]]]:
     if self.ShouldUseCache():
       return super( OmniCompleter, self ).ComputeCandidates( request_data )
     if self.ShouldUseNowInner( request_data ):
@@ -67,7 +69,7 @@ class OmniCompleter( Completer ):
     return []
 
 
-  def ComputeCandidatesInner( self, request_data ):
+  def ComputeCandidatesInner( self, request_data: RequestWrap ) -> List[Dict[str, Union[int, str]]]:
     if not self._omnifunc:
       return []
 
@@ -140,7 +142,7 @@ class OmniCompleter( Completer ):
       vimsupport.SetCurrentLineAndColumn( line, column )
 
 
-  def FilterAndSortCandidatesInner( self, candidates, sort_property, query ):
+  def FilterAndSortCandidatesInner( self, candidates: List[Dict[str, Union[int, str]]], sort_property: str, query: str ) -> List[Dict[str, Union[int, str]]]:
     request_data = {
       'candidates': candidates,
       'sort_property': sort_property,

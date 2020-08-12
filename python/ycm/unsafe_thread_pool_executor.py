@@ -11,6 +11,7 @@ import weakref
 import sys
 
 from concurrent.futures import _base
+from typing import Any, Callable, Dict, Tuple
 
 try:
   import queue
@@ -28,7 +29,7 @@ except ImportError:
 # it's safe (the aforementioned network requests case).
 
 class _WorkItem:
-  def __init__( self, future, fn, args, kwargs ):
+  def __init__( self, future: _base.Future, fn: Callable, args: Tuple[str, bytes], kwargs: Dict[str, Any] ) -> None:
     self.future = future
     self.fn = fn
     self.args = args
@@ -68,7 +69,7 @@ def _worker( executor_reference, work_queue ):
 
 
 class UnsafeThreadPoolExecutor( _base.Executor ):
-  def __init__( self, max_workers ):
+  def __init__( self, max_workers: int ) -> None:
     """Initializes a new ThreadPoolExecutor instance.
 
     Args:
@@ -81,7 +82,7 @@ class UnsafeThreadPoolExecutor( _base.Executor ):
     self._shutdown = False
     self._shutdown_lock = threading.Lock()
 
-  def submit( self, fn, *args, **kwargs ):
+  def submit( self, fn: Callable, *args, **kwargs) -> _base.Future:
     with self._shutdown_lock:
       if self._shutdown:
         raise RuntimeError( 'cannot schedule new futures after shutdown' )
@@ -94,7 +95,7 @@ class UnsafeThreadPoolExecutor( _base.Executor ):
       return f
   submit.__doc__ = _base.Executor.submit.__doc__
 
-  def _adjust_thread_count( self ):
+  def _adjust_thread_count( self ) -> None:
     # When the executor gets lost, the weakref callback will wake up
     # the worker threads.
     def weakref_cb( _, q=self._work_queue ):

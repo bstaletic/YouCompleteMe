@@ -25,7 +25,7 @@ from ycm.client.base_request import BuildRequestData
 
 @patch( 'ycm.client.base_request.GetCurrentDirectory',
         return_value = '/some/dir' )
-def BuildRequestData_AddWorkingDir_test( *args ):
+def BuildRequestData_AddWorkingDir_test( *args) -> None:
   current_buffer = VimBuffer( 'foo' )
   with MockVimBuffers( [ current_buffer ], [ current_buffer ] ):
     assert_that( BuildRequestData(), has_entry( 'working_dir', '/some/dir' ) )
@@ -33,7 +33,7 @@ def BuildRequestData_AddWorkingDir_test( *args ):
 
 @patch( 'ycm.client.base_request.GetCurrentDirectory',
         return_value = '/some/dir' )
-def BuildRequestData_AddWorkingDirWithFileName_test( *args ):
+def BuildRequestData_AddWorkingDirWithFileName_test( *args) -> None:
   current_buffer = VimBuffer( 'foo' )
   with MockVimBuffers( [ current_buffer ], [ current_buffer ] ):
     assert_that( BuildRequestData( current_buffer.number ),

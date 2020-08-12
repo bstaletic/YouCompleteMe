@@ -25,7 +25,7 @@ from ycm.client.messages_request import _HandlePollResponse
 from ycm.tests.test_utils import ExtendedMock
 
 
-def HandlePollResponse_NoMessages_test():
+def HandlePollResponse_NoMessages_test() -> None:
   assert_that( _HandlePollResponse( True, None ), equal_to( True ) )
 
   # Other non-False responses mean the same thing
@@ -34,7 +34,7 @@ def HandlePollResponse_NoMessages_test():
   assert_that( _HandlePollResponse( {}, None ), equal_to( True ) )
 
 
-def HandlePollResponse_PollingNotSupported_test():
+def HandlePollResponse_PollingNotSupported_test() -> None:
   assert_that( _HandlePollResponse( False, None ), equal_to( False ) )
 
   # 0 is not False
@@ -67,7 +67,7 @@ def HandlePollResponse_MultipleMessages_test( post_vim_message ):
   ] )
 
 
-def HandlePollResponse_SingleDiagnostic_test():
+def HandlePollResponse_SingleDiagnostic_test() -> None:
   diagnostics_handler = ExtendedMock()
   messages = [
     { 'filepath': 'foo', 'diagnostics': [ 'PLACEHOLDER' ] },
@@ -79,7 +79,7 @@ def HandlePollResponse_SingleDiagnostic_test():
   ] )
 
 
-def HandlePollResponse_MultipleDiagnostics_test():
+def HandlePollResponse_MultipleDiagnostics_test() -> None:
   diagnostics_handler = ExtendedMock()
   messages = [
     { 'filepath': 'foo', 'diagnostics': [ 'PLACEHOLDER1' ] },

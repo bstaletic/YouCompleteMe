@@ -31,10 +31,12 @@ from ycm.client.completion_request import ( CompletionRequest,
                                             _FilterToMatchingCompletions,
                                             _GetRequiredNamespaceImport )
 from ycm.client.omni_completion_request import OmniCompletionRequest
+from typing import Any, Dict, Iterator, List, Optional, Union
 
 
-def CompleteItemIs( word, abbr = None, menu = None,
-                    info = None, kind = None, **kwargs ):
+def CompleteItemIs( word: str, abbr: Optional[str] = None, menu: Optional[str] = None,
+                    info: Optional[str] = None, kind: Optional[str] = None, **kwargs
+) -> Dict[str, Union[str, bytes]]:
   item = {
     'word': ToBytes( word ),
     'abbr': ToBytes( abbr ),
@@ -46,8 +48,9 @@ def CompleteItemIs( word, abbr = None, menu = None,
   return item
 
 
-def GetVariableValue_CompleteItemIs( word, abbr = None, menu = None,
-                                     info = None, kind = None, **kwargs ):
+def GetVariableValue_CompleteItemIs( word: str, abbr: Optional[str] = None, menu: Optional[str] = None,
+                                     info: Optional[str] = None, kind: Optional[str] = None, **kwargs
+) -> MagicMock:
   def Result( variable ):
     if variable == 'v:completed_item':
       return CompleteItemIs( word, abbr, menu, info, kind, **kwargs )
@@ -55,12 +58,12 @@ def GetVariableValue_CompleteItemIs( word, abbr = None, menu = None,
   return MagicMock( side_effect = Result )
 
 
-def BuildCompletion( insertion_text = 'Test',
-                     menu_text = None,
-                     extra_menu_info = None,
-                     detailed_info = None,
-                     kind = None,
-                     extra_data = None ):
+def BuildCompletion( insertion_text: str = 'Test',
+                     menu_text: Optional[str] = None,
+                     extra_menu_info: Optional[str] = None,
+                     detailed_info: Optional[str] = None,
+                     kind: Optional[str] = None,
+                     extra_data: Optional[Any] = None ) -> Dict[str, Any]:
   completion = {
     'insertion_text': insertion_text
   }
@@ -78,12 +81,12 @@ def BuildCompletion( insertion_text = 'Test',
   return completion
 
 
-def BuildCompletionNamespace( namespace = None,
-                              insertion_text = 'Test',
-                              menu_text = None,
-                              extra_menu_info = None,
-                              detailed_info = None,
-                              kind = None ):
+def BuildCompletionNamespace( namespace: Optional[str] = None,
+                              insertion_text: str = 'Test',
+                              menu_text: Optional[str] = None,
+                              extra_menu_info: Optional[str] = None,
+                              detailed_info: Optional[str] = None,
+                              kind: Optional[str] = None ) -> Dict[str, Union[str, Dict[str, str], Dict[str, None]]]:
   return BuildCompletion( insertion_text = insertion_text,
                           menu_text = menu_text,
                           extra_menu_info = extra_menu_info,
@@ -94,12 +97,12 @@ def BuildCompletionNamespace( namespace = None,
                           } )
 
 
-def BuildCompletionFixIt( fixits,
-                          insertion_text = 'Test',
-                          menu_text = None,
-                          extra_menu_info = None,
-                          detailed_info = None,
-                          kind = None ):
+def BuildCompletionFixIt( fixits: Union[List[Dict[str, str]], List[Dict[str, List[Any]]]],
+                          insertion_text: str = 'Test',
+                          menu_text: None = None,
+                          extra_menu_info: None = None,
+                          detailed_info: None = None,
+                          kind: None = None ) -> Dict[str, Union[str, Dict[str, List[Any]], Dict[str, List[Dict[str, List[Any]]]], Dict[str, List[Dict[str, str]]]]]:
   return BuildCompletion( insertion_text = insertion_text,
                           menu_text = menu_text,
                           extra_menu_info = extra_menu_info,
@@ -111,14 +114,14 @@ def BuildCompletionFixIt( fixits,
 
 
 @contextlib.contextmanager
-def _SetupForCsharpCompletionDone( completions ):
+def _SetupForCsharpCompletionDone( completions: Union[List[Union[Dict[str, Union[str, Dict[str, str]]], Dict[str, str]]], List[Dict[str, Union[str, Dict[str, str]]]], List[Dict[str, str]], List[Dict[str, Union[str, Dict[str, None]]]]] ) -> Iterator[CompletionRequest]:
   with patch( 'ycm.vimsupport.InsertNamespace' ):
     with _SetUpCompleteDone( completions ) as request:
       yield request
 
 
 @contextlib.contextmanager
-def _SetUpCompleteDone( completions ):
+def _SetUpCompleteDone( completions: Any ) -> Iterator[CompletionRequest]:
   with patch( 'ycm.vimsupport.TextBeforeCursor', return_value = '   Test' ):
     request = CompletionRequest( None )
     request.Done = MagicMock( return_value = True )
@@ -129,7 +132,7 @@ def _SetUpCompleteDone( completions ):
 
 
 @patch( 'ycm.vimsupport.CurrentFiletypes', return_value = [ 'ycmtest' ] )
-def OnCompleteDone_DefaultFixIt_test( *args ):
+def OnCompleteDone_DefaultFixIt_test( *args) -> None:
   request = CompletionRequest( None )
   request.Done = MagicMock( return_value = True )
   request._OnCompleteDone_Csharp = MagicMock()
@@ -140,7 +143,7 @@ def OnCompleteDone_DefaultFixIt_test( *args ):
 
 
 @patch( 'ycm.vimsupport.CurrentFiletypes', return_value = [ 'cs' ] )
-def OnCompleteDone_CsharpFixIt_test( *args ):
+def OnCompleteDone_CsharpFixIt_test( *args) -> None:
   request = CompletionRequest( None )
   request.Done = MagicMock( return_value = True )
   request._OnCompleteDone_Csharp = MagicMock()
@@ -151,7 +154,7 @@ def OnCompleteDone_CsharpFixIt_test( *args ):
 
 
 @patch( 'ycm.vimsupport.CurrentFiletypes', return_value = [ 'ycmtest' ] )
-def OnCompleteDone_NoFixItIfNotDone_test( *args ):
+def OnCompleteDone_NoFixItIfNotDone_test( *args) -> None:
   request = CompletionRequest( None )
   request.Done = MagicMock( return_value = False )
   request._OnCompleteDone_Csharp = MagicMock()
@@ -162,7 +165,7 @@ def OnCompleteDone_NoFixItIfNotDone_test( *args ):
 
 
 @patch( 'ycm.vimsupport.CurrentFiletypes', return_value = [ 'ycmtest' ] )
-def OnCompleteDone_NoFixItForOmnifunc_test( *args ):
+def OnCompleteDone_NoFixItForOmnifunc_test( *args) -> None:
   request = OmniCompletionRequest( 'omnifunc', None )
   request.Done = MagicMock( return_value = True )
   request._OnCompleteDone_Csharp = MagicMock()
@@ -172,43 +175,43 @@ def OnCompleteDone_NoFixItForOmnifunc_test( *args ):
   request._OnCompleteDone_FixIt.assert_not_called()
 
 
-def FilterToCompletedCompletions_MatchIsReturned_test():
+def FilterToCompletedCompletions_MatchIsReturned_test() -> None:
   completions = [ BuildCompletion( insertion_text = 'Test' ) ]
   result = _FilterToMatchingCompletions( CompleteItemIs( 'Test' ), completions )
   assert_that( list( result ), contains_exactly( {} ) )
 
 
-def FilterToCompletedCompletions_ShortTextDoesntRaise_test():
+def FilterToCompletedCompletions_ShortTextDoesntRaise_test() -> None:
   completions = [ BuildCompletion( insertion_text = 'AAA' ) ]
   result = _FilterToMatchingCompletions( CompleteItemIs( 'A' ), completions )
   assert_that( list( result ), empty() )
 
 
-def FilterToCompletedCompletions_ExactMatchIsReturned_test():
+def FilterToCompletedCompletions_ExactMatchIsReturned_test() -> None:
   completions = [ BuildCompletion( insertion_text = 'Test' ) ]
   result = _FilterToMatchingCompletions( CompleteItemIs( 'Test' ), completions )
   assert_that( list( result ), contains_exactly( {} ) )
 
 
-def FilterToCompletedCompletions_NonMatchIsntReturned_test():
+def FilterToCompletedCompletions_NonMatchIsntReturned_test() -> None:
   completions = [ BuildCompletion( insertion_text = 'A' ) ]
   result = _FilterToMatchingCompletions( CompleteItemIs( '   Quote' ),
                                          completions )
   assert_that( list( result ), empty() )
 
 
-def FilterToCompletedCompletions_Unicode_test():
+def FilterToCompletedCompletions_Unicode_test() -> None:
   completions = [ BuildCompletion( insertion_text = '†es†' ) ]
   result = _FilterToMatchingCompletions( CompleteItemIs( '†es†' ),
                                          completions )
   assert_that( list( result ), contains_exactly( {} ) )
 
 
-def GetRequiredNamespaceImport_ReturnNoneForNoExtraData_test():
+def GetRequiredNamespaceImport_ReturnNoneForNoExtraData_test() -> None:
   assert_that( _GetRequiredNamespaceImport( {} ), none() )
 
 
-def GetRequiredNamespaceImport_ReturnNamespaceFromExtraData_test():
+def GetRequiredNamespaceImport_ReturnNamespaceFromExtraData_test() -> None:
   namespace = 'A_NAMESPACE'
   assert_that( _GetRequiredNamespaceImport(
                    BuildCompletionNamespace( namespace )[ 'extra_data' ] ),
@@ -218,13 +221,13 @@ def GetRequiredNamespaceImport_ReturnNamespaceFromExtraData_test():
 @patch( 'ycm.vimsupport.GetVariableValue',
         GetVariableValue_CompleteItemIs( 'Te' ) )
 def GetExtraDataUserMayHaveCompleted_ReturnEmptyIfPendingMatches_test(
-    *args ):
+    *args) -> None:
   completions = [ BuildCompletionNamespace( None ) ]
   with _SetupForCsharpCompletionDone( completions ) as request:
     assert_that( request._GetExtraDataUserMayHaveCompleted(), empty() )
 
 
-def GetExtraDataUserMayHaveCompleted_ReturnMatchIfExactMatches_test( *args ):
+def GetExtraDataUserMayHaveCompleted_ReturnMatchIfExactMatches_test( *args) -> None:
   info = [ 'NS', 'Test', 'Abbr', 'Menu', 'Info', 'Kind' ]
   completions = [ BuildCompletionNamespace( *info ) ]
   with _SetupForCsharpCompletionDone( completions ) as request:
@@ -234,7 +237,7 @@ def GetExtraDataUserMayHaveCompleted_ReturnMatchIfExactMatches_test( *args ):
                    contains_exactly( completions[ 0 ][ 'extra_data' ] ) )
 
 
-def GetExtraDataUserMayHaveCompleted_ReturnMatchIfExactMatchesEvenIfPartial_test(): # noqa
+def GetExtraDataUserMayHaveCompleted_ReturnMatchIfExactMatchesEvenIfPartial_test() -> None: # noqa
   info = [ 'NS', 'Test', 'Abbr', 'Menu', 'Info', 'Kind' ]
   completions = [ BuildCompletionNamespace( *info ),
                   BuildCompletion( insertion_text = 'TestTest' ) ]
@@ -245,7 +248,7 @@ def GetExtraDataUserMayHaveCompleted_ReturnMatchIfExactMatchesEvenIfPartial_test
                    contains_exactly( completions[ 0 ][ 'extra_data' ] ) )
 
 
-def GetExtraDataUserMayHaveCompleted_DontReturnMatchIfNoExactMatchesAndPartial_test(): # noqa
+def GetExtraDataUserMayHaveCompleted_DontReturnMatchIfNoExactMatchesAndPartial_test() -> None: # noqa
   info = [ 'NS', 'Test', 'Abbr', 'Menu', 'Info', 'Kind' ]
   completions = [ BuildCompletion( insertion_text = info[ 0 ] ),
                   BuildCompletion( insertion_text = 'TestTest' ) ]
@@ -257,7 +260,7 @@ def GetExtraDataUserMayHaveCompleted_DontReturnMatchIfNoExactMatchesAndPartial_t
 
 @patch( 'ycm.vimsupport.GetVariableValue',
         GetVariableValue_CompleteItemIs( 'Test' ) )
-def GetExtraDataUserMayHaveCompleted_ReturnMatchIfMatches_test( *args ):
+def GetExtraDataUserMayHaveCompleted_ReturnMatchIfMatches_test( *args) -> None:
   completions = [ BuildCompletionNamespace( None ) ]
   with _SetupForCsharpCompletionDone( completions ) as request:
     assert_that( request._GetExtraDataUserMayHaveCompleted(),
@@ -269,7 +272,7 @@ def GetExtraDataUserMayHaveCompleted_ReturnMatchIfMatches_test( *args ):
           'Test',
           user_data=json.dumps( {
             'required_namespace_import': 'namespace1' } ) ) )
-def GetExtraDataUserMayHaveCompleted_UseUserData0_test( *args ):
+def GetExtraDataUserMayHaveCompleted_UseUserData0_test( *args) -> None:
   # Identical completions but we specify the first one via user_data.
   completions = [
     BuildCompletionNamespace( 'namespace1' ),
@@ -287,7 +290,7 @@ def GetExtraDataUserMayHaveCompleted_UseUserData0_test( *args ):
           'Test',
           user_data=json.dumps( {
             'required_namespace_import': 'namespace2' } ) ) )
-def GetExtraDataUserMayHaveCompleted_UseUserData1_test( *args ):
+def GetExtraDataUserMayHaveCompleted_UseUserData1_test( *args) -> None:
   # Identical completions but we specify the second one via user_data.
   completions = [
     BuildCompletionNamespace( 'namespace1' ),
@@ -302,7 +305,7 @@ def GetExtraDataUserMayHaveCompleted_UseUserData1_test( *args ):
 
 @patch( 'ycm.vimsupport.GetVariableValue',
         GetVariableValue_CompleteItemIs( 'Test', user_data='' ) )
-def GetExtraDataUserMayHaveCompleted_EmptyUserData_test( *args ):
+def GetExtraDataUserMayHaveCompleted_EmptyUserData_test( *args) -> None:
   # Identical completions but none is selected.
   completions = [
     BuildCompletionNamespace( 'namespace1' ),
@@ -315,7 +318,7 @@ def GetExtraDataUserMayHaveCompleted_EmptyUserData_test( *args ):
 
 @patch( 'ycm.vimsupport.GetVariableValue',
         GetVariableValue_CompleteItemIs( 'Test' ) )
-def PostCompleteCsharp_EmptyDoesntInsertNamespace_test( *args ):
+def PostCompleteCsharp_EmptyDoesntInsertNamespace_test( *args) -> None:
   with _SetupForCsharpCompletionDone( [] ) as request:
     request._OnCompleteDone_Csharp()
     assert_that( not vimsupport.InsertNamespace.called )
@@ -324,7 +327,7 @@ def PostCompleteCsharp_EmptyDoesntInsertNamespace_test( *args ):
 @patch( 'ycm.vimsupport.GetVariableValue',
         GetVariableValue_CompleteItemIs( 'Test' ) )
 def PostCompleteCsharp_ExistingWithoutNamespaceDoesntInsertNamespace_test(
-    *args ):
+    *args) -> None:
   completions = [ BuildCompletionNamespace( None ) ]
   with _SetupForCsharpCompletionDone( completions ) as request:
     request._OnCompleteDone_Csharp()
@@ -333,7 +336,7 @@ def PostCompleteCsharp_ExistingWithoutNamespaceDoesntInsertNamespace_test(
 
 @patch( 'ycm.vimsupport.GetVariableValue',
         GetVariableValue_CompleteItemIs( 'Test' ) )
-def PostCompleteCsharp_ValueDoesInsertNamespace_test( *args ):
+def PostCompleteCsharp_ValueDoesInsertNamespace_test( *args) -> None:
   namespace = 'A_NAMESPACE'
   completions = [ BuildCompletionNamespace( namespace ) ]
   with _SetupForCsharpCompletionDone( completions ) as request:
@@ -344,7 +347,7 @@ def PostCompleteCsharp_ValueDoesInsertNamespace_test( *args ):
 @patch( 'ycm.vimsupport.GetVariableValue',
         GetVariableValue_CompleteItemIs( 'Test' ) )
 @patch( 'ycm.vimsupport.PresentDialog', return_value = 1 )
-def PostCompleteCsharp_InsertSecondNamespaceIfSelected_test( *args ):
+def PostCompleteCsharp_InsertSecondNamespaceIfSelected_test( *args) -> None:
   namespace = 'A_NAMESPACE'
   namespace2 = 'ANOTHER_NAMESPACE'
   completions = [
@@ -359,7 +362,7 @@ def PostCompleteCsharp_InsertSecondNamespaceIfSelected_test( *args ):
 @patch( 'ycm.vimsupport.GetVariableValue',
         GetVariableValue_CompleteItemIs( 'Test' ) )
 @patch( 'ycm.vimsupport.ReplaceChunks' )
-def PostCompleteFixIt_ApplyFixIt_NoFixIts_test( replace_chunks, *args ):
+def PostCompleteFixIt_ApplyFixIt_NoFixIts_test( replace_chunks: MagicMock, *args) -> None:
   completions = [
     BuildCompletionFixIt( [] )
   ]
@@ -371,7 +374,7 @@ def PostCompleteFixIt_ApplyFixIt_NoFixIts_test( replace_chunks, *args ):
 @patch( 'ycm.vimsupport.GetVariableValue',
         GetVariableValue_CompleteItemIs( 'Test' ) )
 @patch( 'ycm.vimsupport.ReplaceChunks' )
-def PostCompleteFixIt_ApplyFixIt_EmptyFixIt_test( replace_chunks, *args ):
+def PostCompleteFixIt_ApplyFixIt_EmptyFixIt_test( replace_chunks: MagicMock, *args) -> None:
   completions = [
     BuildCompletionFixIt( [ { 'chunks': [] } ] )
   ]
@@ -383,7 +386,7 @@ def PostCompleteFixIt_ApplyFixIt_EmptyFixIt_test( replace_chunks, *args ):
 @patch( 'ycm.vimsupport.GetVariableValue',
         GetVariableValue_CompleteItemIs( 'Test' ) )
 @patch( 'ycm.vimsupport.ReplaceChunks' )
-def PostCompleteFixIt_ApplyFixIt_NoFixIt_test( replace_chunks, *args ):
+def PostCompleteFixIt_ApplyFixIt_NoFixIt_test( replace_chunks: MagicMock, *args) -> None:
   completions = [
     BuildCompletion()
   ]
@@ -395,7 +398,7 @@ def PostCompleteFixIt_ApplyFixIt_NoFixIt_test( replace_chunks, *args ):
 @patch( 'ycm.vimsupport.GetVariableValue',
         GetVariableValue_CompleteItemIs( 'Test' ) )
 @patch( 'ycm.vimsupport.ReplaceChunks' )
-def PostCompleteFixIt_ApplyFixIt_PickFirst_test( replace_chunks, *args ):
+def PostCompleteFixIt_ApplyFixIt_PickFirst_test( replace_chunks: MagicMock, *args) -> None:
   completions = [
     BuildCompletionFixIt( [ { 'chunks': 'one' } ] ),
     BuildCompletionFixIt( [ { 'chunks': 'two' } ] ),
@@ -410,8 +413,8 @@ def PostCompleteFixIt_ApplyFixIt_PickFirst_test( replace_chunks, *args ):
           'Test',
           user_data=json.dumps( { 'fixits': [ { 'chunks': 'one' } ] } ) ) )
 @patch( 'ycm.vimsupport.ReplaceChunks' )
-def PostCompleteFixIt_ApplyFixIt_PickFirstUserData_test( replace_chunks,
-                                                         *args ):
+def PostCompleteFixIt_ApplyFixIt_PickFirstUserData_test( replace_chunks: MagicMock,
+                                                         *args) -> None:
   completions = [
     BuildCompletionFixIt( [ { 'chunks': 'one' } ] ),
     BuildCompletionFixIt( [ { 'chunks': 'two' } ] ),
@@ -426,7 +429,7 @@ def PostCompleteFixIt_ApplyFixIt_PickFirstUserData_test( replace_chunks,
           'Test',
           user_data=json.dumps( { 'fixits': [ { 'chunks': 'two' } ] } ) ) )
 @patch( 'ycm.vimsupport.ReplaceChunks' )
-def PostCompleteFixIt_ApplyFixIt_PickSecond_test( replace_chunks, *args ):
+def PostCompleteFixIt_ApplyFixIt_PickSecond_test( replace_chunks: MagicMock, *args) -> None:
   completions = [
     BuildCompletionFixIt( [ { 'chunks': 'one' } ] ),
     BuildCompletionFixIt( [ { 'chunks': 'two' } ] ),

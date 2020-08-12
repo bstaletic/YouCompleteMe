@@ -17,11 +17,12 @@
 
 from ycm import vimsupport
 from ycmd import identifier_utils
+from typing import Dict, List, Union
 
 YCM_VAR_PREFIX = 'ycm_'
 
 
-def GetUserOptions():
+def GetUserOptions() -> Dict[str, Union[str, int, Dict[str, int], Dict[str, List[str]], List[str]]]:
   """Builds a dictionary mapping YCM Vim user options to values. Option names
   don't have the 'ycm_' prefix."""
   # We only evaluate the keys of the vim globals and not the whole dictionary
@@ -39,7 +40,7 @@ def GetUserOptions():
   return user_options
 
 
-def CurrentIdentifierFinished():
+def CurrentIdentifierFinished() -> bool:
   line, current_column = vimsupport.CurrentLineContentsAndCodepointColumn()
   previous_char_index = current_column - 1
   if previous_char_index < 0:
@@ -55,7 +56,7 @@ def CurrentIdentifierFinished():
   return line[ : current_column ].isspace()
 
 
-def LastEnteredCharIsIdentifierChar():
+def LastEnteredCharIsIdentifierChar() -> bool:
   line, current_column = vimsupport.CurrentLineContentsAndCodepointColumn()
   if current_column - 1 < 0:
     return False
@@ -65,7 +66,7 @@ def LastEnteredCharIsIdentifierChar():
         line, current_column, filetype ) != current_column )
 
 
-def AdjustCandidateInsertionText( candidates ):
+def AdjustCandidateInsertionText( candidates: Union[List[Dict[str, str]], List[Dict[str, Union[int, str]]]] ) -> Union[List[Dict[str, str]], List[Dict[str, Union[int, str]]]]:
   """This function adjusts the candidate insertion text to take into account the
   text that's currently in front of the cursor.
 
@@ -107,7 +108,7 @@ def AdjustCandidateInsertionText( candidates ):
   return new_candidates
 
 
-def OverlapLength( left_string, right_string ):
+def OverlapLength( left_string: str, right_string: str ) -> int:
   """Returns the length of the overlap between two strings.
   Example: "foo baro" and "baro zoo" -> 4
   """

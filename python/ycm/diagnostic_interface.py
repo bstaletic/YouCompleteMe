@@ -18,10 +18,11 @@
 from collections import defaultdict
 from ycm import vimsupport
 from ycm.diagnostic_filter import DiagnosticFilter, CompileLevel
+from typing import Callable, Dict, List, Union
 
 
 class DiagnosticInterface:
-  def __init__( self, bufnr, user_options ):
+  def __init__( self, bufnr: int, user_options: Dict[str, Union[str, int, Dict[str, int]]] ) -> None:
     self._bufnr = bufnr
     self._user_options = user_options
     self._diagnostics = []
@@ -32,7 +33,7 @@ class DiagnosticInterface:
     self._diag_message_needs_clearing = False
 
 
-  def OnCursorMoved( self ):
+  def OnCursorMoved( self ) -> None:
     if self._user_options[ 'echo_current_diagnostic' ]:
       line, _ = vimsupport.CurrentLineAndColumn()
       line += 1  # Convert to 1-based
@@ -40,22 +41,22 @@ class DiagnosticInterface:
         self._EchoDiagnosticForLine( line )
 
 
-  def GetErrorCount( self ):
+  def GetErrorCount( self ) -> int:
     return self._DiagnosticsCount( _DiagnosticIsError )
 
 
-  def GetWarningCount( self ):
+  def GetWarningCount( self ) -> int:
     return self._DiagnosticsCount( _DiagnosticIsWarning )
 
 
-  def PopulateLocationList( self ):
+  def PopulateLocationList( self ) -> bool:
     # Do nothing if loc list is already populated by diag_interface
     if not self._user_options[ 'always_populate_location_list' ]:
       self._UpdateLocationLists()
     return bool( self._diagnostics )
 
 
-  def UpdateWithNewDiagnostics( self, diags ):
+  def UpdateWithNewDiagnostics( self, diags: Union[List[Dict[str, Union[str, Dict[str, Union[int, str]], Dict[str, Dict[str, Union[int, str]]]]]], List[Union[Dict[str, Union[Dict[str, Union[int, str]], Dict[str, Dict[str, Union[int, str]]], str, bool]], Dict[str, Union[str, Dict[str, Union[int, str]], Dict[str, Dict[str, Union[int, str]]], List[Dict[str, Dict[str, Union[int, str]]]], bool]]]], List[Dict[str, Union[str, Dict[str, Union[int, str]]]]], List[Dict[str, Union[str, Dict[str, Union[int, str]], Dict[str, Dict[str, Union[int, str]]], List[Dict[str, Dict[str, Union[int, str]]]], bool]]], List[Dict[str, Union[Dict[str, Union[int, str]], Dict[str, Dict[str, Union[int, str]]], str, bool]]]] ) -> None:
     self._diagnostics = [ _NormalizeDiagnostic( x ) for x in
                             self._ApplyDiagnosticFilter( diags ) ]
     self._ConvertDiagListToDict()
@@ -72,19 +73,19 @@ class DiagnosticInterface:
       self._UpdateLocationLists()
 
 
-  def _ApplyDiagnosticFilter( self, diags ):
+  def _ApplyDiagnosticFilter( self, diags: Union[List[Dict[str, Union[str, Dict[str, Union[int, str]], Dict[str, Dict[str, Union[int, str]]]]]], List[Union[Dict[str, Union[Dict[str, Union[int, str]], Dict[str, Dict[str, Union[int, str]]], str, bool]], Dict[str, Union[str, Dict[str, Union[int, str]], Dict[str, Dict[str, Union[int, str]]], List[Dict[str, Dict[str, Union[int, str]]]], bool]]]], List[Dict[str, Union[str, Dict[str, Union[int, str]]]]], List[Dict[str, Union[str, Dict[str, Union[int, str]], Dict[str, Dict[str, Union[int, str]]], List[Dict[str, Dict[str, Union[int, str]]]], bool]]], List[Dict[str, Union[Dict[str, Union[int, str]], Dict[str, Dict[str, Union[int, str]]], str, bool]]]] ) -> filter:
     filetypes = vimsupport.GetBufferFiletypes( self._bufnr )
     diag_filter = self._diag_filter.SubsetForTypes( filetypes )
     return filter( diag_filter.IsAllowed, diags )
 
 
-  def _EchoDiagnostic( self ):
+  def _EchoDiagnostic( self ) -> None:
     line, _ = vimsupport.CurrentLineAndColumn()
     line += 1  # Convert to 1-based
     self._EchoDiagnosticForLine( line )
 
 
-  def _EchoDiagnosticForLine( self, line_num ):
+  def _EchoDiagnosticForLine( self, line_num: int ) -> None:
     self._previous_diag_line_number = line_num
 
     diags = self._line_to_diags[ line_num ]
@@ -104,20 +105,20 @@ class DiagnosticInterface:
     self._diag_message_needs_clearing = True
 
 
-  def _DiagnosticsCount( self, predicate ):
+  def _DiagnosticsCount( self, predicate: Callable ) -> int:
     count = 0
     for diags in self._line_to_diags.values():
       count += sum( 1 for d in diags if predicate( d ) )
     return count
 
 
-  def _UpdateLocationLists( self ):
+  def _UpdateLocationLists( self ) -> None:
     vimsupport.SetLocationListsForBuffer(
       self._bufnr,
       vimsupport.ConvertDiagnosticsToQfList( self._diagnostics ) )
 
 
-  def UpdateMatches( self ):
+  def UpdateMatches( self ) -> None:
     if not self._user_options[ 'enable_diagnostic_highlighting' ]:
       return
 
@@ -146,7 +147,7 @@ class DiagnosticInterface:
       vimsupport.RemoveDiagnosticMatch( match )
 
 
-  def _UpdateSigns( self ):
+  def _UpdateSigns( self ) -> None:
     signs_to_unplace = vimsupport.GetSignsInBuffer( self._bufnr )
 
     for line, diags in self._line_to_diags.items():
@@ -168,7 +169,7 @@ class DiagnosticInterface:
       vimsupport.UnplaceSign( sign )
 
 
-  def _ConvertDiagListToDict( self ):
+  def _ConvertDiagListToDict( self ) -> None:
     self._line_to_diags = defaultdict( list )
     for diag in self._diagnostics:
       location = diag[ 'location' ]
@@ -188,7 +189,7 @@ _DiagnosticIsError = CompileLevel( 'error' )
 _DiagnosticIsWarning = CompileLevel( 'warning' )
 
 
-def _NormalizeDiagnostic( diag ):
+def _NormalizeDiagnostic( diag: Dict[str, Union[str, Dict[str, Union[int, str]], Dict[str, Dict[str, Union[int, str]]], List[Dict[str, Dict[str, Union[int, str]]]], bool]] ) -> Dict[str, Union[str, Dict[str, Union[int, str]], Dict[str, Dict[str, Union[int, str]]], List[Dict[str, Dict[str, Union[int, str]]]], bool]]:
   def ClampToOne( value ):
     return value if value > 0 else 1
 
@@ -198,7 +199,7 @@ def _NormalizeDiagnostic( diag ):
   return diag
 
 
-def _ConvertDiagnosticToMatchPatterns( diagnostic ):
+def _ConvertDiagnosticToMatchPatterns( diagnostic: Dict[str, Union[str, Dict[str, Union[int, str]], Dict[str, Dict[str, Union[int, str]]], List[Dict[str, Dict[str, Union[int, str]]]], bool]] ) -> List[str]:
   patterns = []
 
   location_extent = diagnostic[ 'location_extent' ]

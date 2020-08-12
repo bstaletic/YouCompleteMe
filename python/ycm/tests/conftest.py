@@ -28,6 +28,9 @@ from ycm.client.base_request import BaseRequest
 from ycm.tests import test_utils
 from ycm.youcompleteme import YouCompleteMe
 from ycmd.utils import CloseStandardStreams, WaitUntilProcessIsTerminated
+from _pytest.fixtures import SubRequest
+from _pytest.mark.structures import MarkDecorator
+from typing import Any, Dict, Iterator, List, Optional, Union
 
 
 def setUpAndTearDown():
@@ -68,7 +71,7 @@ DEFAULT_CLIENT_OPTIONS = {
 
 
 @contextlib.contextmanager
-def UserOptions( options ):
+def UserOptions( options: Dict[str, Any] ) -> Iterator[None]:
   old_vim_options = test_utils.VIM_OPTIONS.copy()
   test_utils.VIM_OPTIONS.update( DEFAULT_CLIENT_OPTIONS )
   test_utils.VIM_OPTIONS.update( options )
@@ -78,11 +81,11 @@ def UserOptions( options ):
     test_utils.VIM_OPTIONS = old_vim_options
 
 
-def _IsReady():
+def _IsReady() -> Optional[bool]:
   return BaseRequest().GetDataFromHandler( 'ready' )
 
 
-def WaitUntilReady( timeout = 5 ):
+def WaitUntilReady( timeout: int = 5 ) -> None:
   expiration = time.time() + timeout
   while True:
     try:
@@ -97,7 +100,7 @@ def WaitUntilReady( timeout = 5 ):
       time.sleep( 0.1 )
 
 
-def StopServer( ycm ):
+def StopServer( ycm: YouCompleteMe ) -> None:
   try:
     ycm.OnVimLeave()
     WaitUntilProcessIsTerminated( ycm._server_popen )
@@ -107,7 +110,7 @@ def StopServer( ycm ):
 
 
 @pytest.fixture
-def ycm( request ):
+def ycm( request: SubRequest ) -> Iterator[YouCompleteMe]:
   custom_options = request.param
   with UserOptions( custom_options ):
     ycm = YouCompleteMe()
@@ -120,7 +123,7 @@ def ycm( request ):
       StopServer( ycm )
 
 
-def YouCompleteMeInstance( custom_options = {} ):
+def YouCompleteMeInstance( custom_options: Dict[str, Union[str, int, Dict[str, int], Dict[str, List[str]], List[str]]] = {} ) -> MarkDecorator:
   """Defines a decorator function for tests that passes a unique YouCompleteMe
   instance as a parameter. This instance is initialized with the default options
   `DEFAULT_CLIENT_OPTIONS`. Use the optional parameter |custom_options| to give

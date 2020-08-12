@@ -17,10 +17,11 @@
 
 from ycm import vimsupport
 import re
+from typing import Callable, Dict, List, Union
 
 
 class DiagnosticFilter:
-  def __init__( self, config_or_filters ):
+  def __init__( self, config_or_filters: List[Callable] ) -> None:
     if isinstance( config_or_filters, list ):
       self._filters = config_or_filters
 
@@ -28,7 +29,7 @@ class DiagnosticFilter:
       self._filters = _CompileFilters( config_or_filters )
 
 
-  def IsAllowed( self, diagnostic ):
+  def IsAllowed( self, diagnostic: Dict[str, Union[str, Dict[str, Union[int, str]], Dict[str, Dict[str, Union[int, str]]], List[Dict[str, Dict[str, Union[int, str]]]], bool]] ) -> bool:
     # NOTE: a diagnostic IsAllowed() ONLY if NO filters match it
     for filterMatches in self._filters:
       if filterMatches( diagnostic ):
@@ -44,7 +45,7 @@ class DiagnosticFilter:
 
 
   @staticmethod
-  def CreateFromOptions( user_options ):
+  def CreateFromOptions( user_options: Dict[str, Union[str, int, Dict[str, int], Dict[str, Dict[str, str]], Dict[str, Dict[str, List[str]]]]] ) -> _MasterDiagnosticFilter:
     all_filters = user_options[ 'filter_diagnostics' ]
     compiled_by_type = {}
     for type_spec, filter_value in all_filters.items():
@@ -59,7 +60,7 @@ class DiagnosticFilter:
 
 class _MasterDiagnosticFilter:
 
-  def __init__( self, all_filters ):
+  def __init__( self, all_filters: Dict[str, List[Callable]] ) -> None:
     self._all_filters = all_filters
     self._cache = {}
 
@@ -73,7 +74,7 @@ class _MasterDiagnosticFilter:
     return self.SubsetForTypes( filetypes ).IsAllowed( diagnostic )
 
 
-  def SubsetForTypes( self, filetypes ):
+  def SubsetForTypes( self, filetypes: List[str] ) -> DiagnosticFilter:
     # check cache
     cache_key = ','.join( filetypes )
     cached = self._cache.get( cache_key )
@@ -92,7 +93,7 @@ class _MasterDiagnosticFilter:
     return new_filter
 
 
-def _ListOf( config_entry ):
+def _ListOf( config_entry: Union[str, List[str]] ) -> List[str]:
   if isinstance( config_entry, list ):
     return config_entry
 
@@ -102,7 +103,7 @@ def _ListOf( config_entry ):
   return [ config_entry ]
 
 
-def CompileRegex( raw_regex ):
+def CompileRegex( raw_regex: str ) -> Callable:
   pattern = re.compile( raw_regex, re.IGNORECASE )
 
   def FilterRegex( diagnostic ):
@@ -111,7 +112,7 @@ def CompileRegex( raw_regex ):
   return FilterRegex
 
 
-def CompileLevel( level ):
+def CompileLevel( level: str ) -> Callable:
   # valid kinds are WARNING and ERROR;
   #  expected input levels are `warning` and `error`
   # NOTE: we don't validate the input...
@@ -127,7 +128,7 @@ FILTER_COMPILERS = { 'regex' : CompileRegex,
                      'level' : CompileLevel }
 
 
-def _CompileFilters( config ):
+def _CompileFilters( config: Dict[str, Union[List[str], str]] ) -> List[Callable]:
   """Given a filter config dictionary, return a list of compiled filters"""
   filters = []
 

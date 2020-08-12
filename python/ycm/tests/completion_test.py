@@ -25,10 +25,12 @@ from unittest.mock import call, MagicMock, patch
 
 from ycm.tests import PathToTestFile, YouCompleteMeInstance
 from ycmd.responses import ServerError
+from typing import Callable, Iterator, Union
+from ycm.youcompleteme import YouCompleteMe
 
 
 @contextlib.contextmanager
-def MockCompletionRequest( response_method ):
+def MockCompletionRequest( response_method: Union[ServerError, Callable] ) -> Iterator[None]:
   """Mock out the CompletionRequest, replacing the response handler
   JsonFromFuture with the |response_method| parameter."""
 
@@ -48,7 +50,7 @@ def MockCompletionRequest( response_method ):
 
 
 @YouCompleteMeInstance()
-def SendCompletionRequest_UnicodeWorkingDirectory_test( ycm ):
+def SendCompletionRequest_UnicodeWorkingDirectory_test( ycm: YouCompleteMe ) -> None:
   unicode_dir = PathToTestFile( 'uni¢od€' )
   current_buffer = VimBuffer( PathToTestFile( 'uni¢𐍈d€', 'current_buffer' ) )
 

@@ -21,18 +21,18 @@ TIMEOUT_SECONDS = 0.1
 
 
 class ShutdownRequest( BaseRequest ):
-  def __init__( self ):
+  def __init__( self ) -> None:
     super( ShutdownRequest, self ).__init__()
 
 
-  def Start( self ):
+  def Start( self ) -> None:
     self.PostDataToHandler( {},
                             'shutdown',
                             TIMEOUT_SECONDS,
                             display_message = False )
 
 
-def SendShutdownRequest():
+def SendShutdownRequest() -> None:
   request = ShutdownRequest()
   # This is a blocking call.
   request.Start()

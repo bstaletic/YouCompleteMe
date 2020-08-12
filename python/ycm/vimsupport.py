@@ -27,6 +27,9 @@ from ycmd.utils import ( ByteOffsetToCodepointOffset,
                          OnWindows,
                          ToBytes,
                          ToUnicode )
+from typing import Any, Callable, DefaultDict, Dict, List, Optional, Tuple, Union
+from unittest.mock import MagicMock
+from ycm.tests.test_utils import VimBuffer, VimWindow
 
 BUFFER_COMMAND_MAP = { 'same-buffer'      : 'edit',
                        'split'            : 'split',
@@ -76,7 +79,7 @@ NO_COMPLETIONS = {
 MEMO = {}
 
 
-def memoize( func ):
+def memoize( func: Callable ) -> Callable:
   global MEMO
 
   import functools
@@ -95,7 +98,7 @@ def memoize( func ):
   return wrapper
 
 
-def CurrentLineAndColumn():
+def CurrentLineAndColumn() -> Tuple[int, int]:
   """Returns the 0-based current line and 0-based current column."""
   # See the comment in CurrentColumn about the calculation for the line and
   # column number
@@ -104,13 +107,13 @@ def CurrentLineAndColumn():
   return line, column
 
 
-def SetCurrentLineAndColumn( line, column ):
+def SetCurrentLineAndColumn( line: int, column: int ) -> None:
   """Sets the cursor position to the 0-based line and 0-based column."""
   # Line from vim.current.window.cursor is 1-based.
   vim.current.window.cursor = ( line + 1, column )
 
 
-def CurrentColumn():
+def CurrentColumn() -> int:
   """Returns the 0-based current column. Do NOT access the CurrentColumn in
   vim.current.line. It doesn't exist yet when the cursor is at the end of the
   line. Only the chars before the current column exist in vim.current.line."""
@@ -123,11 +126,11 @@ def CurrentColumn():
   return vim.current.window.cursor[ 1 ]
 
 
-def CurrentLineContents():
+def CurrentLineContents() -> str:
   return ToUnicode( vim.current.line )
 
 
-def CurrentLineContentsAndCodepointColumn():
+def CurrentLineContentsAndCodepointColumn() -> Tuple[str, int]:
   """Returns the line contents as a unicode string and the 0-based current
   column as a codepoint offset. If the current column is outside the line,
   returns the column position at the end of the line."""
@@ -138,21 +141,21 @@ def CurrentLineContentsAndCodepointColumn():
   return line, column
 
 
-def TextAfterCursor():
+def TextAfterCursor() -> str:
   """Returns the text after CurrentColumn."""
   return ToUnicode( vim.current.line[ CurrentColumn(): ] )
 
 
-def TextBeforeCursor():
+def TextBeforeCursor() -> str:
   """Returns the text before CurrentColumn."""
   return ToUnicode( vim.current.line[ :CurrentColumn() ] )
 
 
-def BufferModified( buffer_object ):
+def BufferModified( buffer_object: VimBuffer ) -> bool:
   return buffer_object.options[ 'mod' ]
 
 
-def GetBufferData( buffer_object ):
+def GetBufferData( buffer_object: VimBuffer ) -> Dict[str, Union[List[str], str]]:
   return {
     # Add a newline to match what gets saved to disk. See #1455 for details.
     'contents': JoinLinesAsUnicode( buffer_object ) + '\n',
@@ -160,7 +163,7 @@ def GetBufferData( buffer_object ):
   }
 
 
-def GetUnsavedAndSpecifiedBufferData( included_buffer, included_filepath ):
+def GetUnsavedAndSpecifiedBufferData( included_buffer: VimBuffer, included_filepath: str ) -> Dict[str, Dict[str, Union[List[str], str]]]:
   """Build part of the request containing the contents and filetypes of all
   dirty buffers as well as the buffer |included_buffer| with its filepath
   |included_filepath|."""
@@ -179,24 +182,24 @@ def GetUnsavedAndSpecifiedBufferData( included_buffer, included_filepath ):
   return buffers_data
 
 
-def GetBufferNumberForFilename( filename, create_buffer_if_needed = False ):
+def GetBufferNumberForFilename( filename: str, create_buffer_if_needed: bool = False ) -> int:
   return GetIntValue(
       f"bufnr('{ EscapeForVim( os.path.realpath( filename ) ) }', "
              f"{ int( create_buffer_if_needed ) })" )
 
 
-def GetCurrentBufferFilepath():
+def GetCurrentBufferFilepath() -> str:
   return GetBufferFilepath( vim.current.buffer )
 
 
-def BufferIsVisible( buffer_number ):
+def BufferIsVisible( buffer_number: int ) -> bool:
   if buffer_number < 0:
     return False
   window_number = GetIntValue( f"bufwinnr({ buffer_number })" )
   return window_number != -1
 
 
-def GetBufferFilepath( buffer_object ):
+def GetBufferFilepath( buffer_object: VimBuffer ) -> str:
   if buffer_object.name:
     return os.path.abspath( ToUnicode( buffer_object.name ) )
   # Buffers that have just been created by a command like :enew don't have any
@@ -204,15 +207,15 @@ def GetBufferFilepath( buffer_object ):
   return os.path.join( GetCurrentDirectory(), str( buffer_object.number ) )
 
 
-def GetCurrentBufferNumber():
+def GetCurrentBufferNumber() -> int:
   return vim.current.buffer.number
 
 
-def GetBufferChangedTick( bufnr ):
+def GetBufferChangedTick( bufnr: int ) -> int:
   return GetIntValue( f'getbufvar({ bufnr }, "changedtick")' )
 
 
-def CaptureVimCommand( command ):
+def CaptureVimCommand( command: str ) -> str:
   vim.command( 'redir => b:ycm_command' )
   vim.command( f'silent! { command }' )
   vim.command( 'redir END' )
@@ -225,13 +228,13 @@ class DiagnosticSign( namedtuple( 'DiagnosticSign',
                                   [ 'id', 'line', 'name', 'buffer_number' ] ) ):
   # We want two signs that have different ids but the same location to compare
   # equal. ID doesn't matter.
-  def __eq__( self, other ):
+  def __eq__( self, other: DiagnosticSign ) -> bool:
     return ( self.line == other.line and
              self.name == other.name and
              self.buffer_number == other.buffer_number )
 
 
-def GetSignsInBuffer( buffer_number ):
+def GetSignsInBuffer( buffer_number: int ) -> List[DiagnosticSign]:
   sign_output = CaptureVimCommand( f'sign place buffer={ buffer_number }' )
   signs = []
   for line in sign_output.split( '\n' ):
@@ -244,29 +247,29 @@ def GetSignsInBuffer( buffer_number ):
   return signs
 
 
-def CreateSign( line, name, buffer_number ):
+def CreateSign( line: int, name: str, buffer_number: int ) -> DiagnosticSign:
   sign_id = SIGN_ID_FOR_BUFFER[ buffer_number ]
   SIGN_ID_FOR_BUFFER[ buffer_number ] += 1
   return DiagnosticSign( sign_id, line, name, buffer_number )
 
 
-def UnplaceSign( sign ):
+def UnplaceSign( sign: DiagnosticSign ) -> None:
   vim.command( f'sign unplace { sign.id } buffer={ sign.buffer_number }' )
 
 
-def PlaceSign( sign ):
+def PlaceSign( sign: DiagnosticSign ) -> None:
   vim.command( f'sign place { sign.id } name={ sign.name } '
                f'line={ sign.line } buffer={ sign.buffer_number }' )
 
 
 class DiagnosticMatch( namedtuple( 'DiagnosticMatch',
                                    [ 'id', 'group', 'pattern' ] ) ):
-  def __eq__( self, other ):
+  def __eq__( self, other: DiagnosticMatch ) -> bool:
     return ( self.group == other.group and
              self.pattern == other.pattern )
 
 
-def GetDiagnosticMatchesInCurrentWindow():
+def GetDiagnosticMatchesInCurrentWindow() -> List[DiagnosticMatch]:
   vim_matches = vim.eval( 'getmatches()' )
   return [ DiagnosticMatch( match[ 'id' ],
                             match[ 'group' ],
@@ -274,20 +277,20 @@ def GetDiagnosticMatchesInCurrentWindow():
            for match in vim_matches if match[ 'group' ].startswith( 'Ycm' ) ]
 
 
-def AddDiagnosticMatch( match ):
+def AddDiagnosticMatch( match: DiagnosticMatch ) -> int:
   # TODO: Use matchaddpos which is much faster given that we always are using a
   # location rather than an actual pattern
   return GetIntValue( f"matchadd('{ match.group }', '{ match.pattern }')" )
 
 
-def RemoveDiagnosticMatch( match ):
+def RemoveDiagnosticMatch( match: DiagnosticMatch ) -> int:
   return GetIntValue( f"matchdelete({ match.id })" )
 
 
-def GetDiagnosticMatchPattern( line_num,
-                               column_num,
-                               line_end_num = None,
-                               column_end_num = None ):
+def GetDiagnosticMatchPattern( line_num: int,
+                               column_num: int,
+                               line_end_num: Optional[int] = None,
+                               column_end_num: Optional[int] = None ) -> str:
   line_num, column_num = LineAndColumnNumbersClamped( line_num, column_num )
   column_num = max( column_num, 1 )
 
@@ -305,7 +308,7 @@ def GetDiagnosticMatchPattern( line_num,
 
 # Clamps the line and column numbers so that they are not past the contents of
 # the buffer. Numbers are 1-based byte offsets.
-def LineAndColumnNumbersClamped( line_num, column_num ):
+def LineAndColumnNumbersClamped( line_num: int, column_num: int ) -> Tuple[int, int]:
   line_num = max( min( line_num, len( vim.current.buffer ) ), 1 )
 
   # Vim buffers are a list of Unicode objects on Python 3.
@@ -314,32 +317,32 @@ def LineAndColumnNumbersClamped( line_num, column_num ):
   return line_num, min( column_num, max_column )
 
 
-def SetLocationList( diagnostics ):
+def SetLocationList( diagnostics: List[Dict[str, Union[int, str]]] ) -> None:
   """Set the location list for the current window to the supplied diagnostics"""
   SetLocationListForWindow( 0, diagnostics )
 
 
-def GetWindowsForBufferNumber( buffer_number ):
+def GetWindowsForBufferNumber( buffer_number: int ) -> List[VimWindow]:
   """Return the list of windows containing the buffer with number
   |buffer_number| for the current tab page."""
   return [ window for window in vim.windows
            if window.buffer.number == buffer_number ]
 
 
-def SetLocationListsForBuffer( buffer_number, diagnostics ):
+def SetLocationListsForBuffer( buffer_number: int, diagnostics: List[Dict[str, Union[int, str]]] ) -> None:
   """Populate location lists for all windows containing the buffer with number
   |buffer_number|. See SetLocationListForWindow for format of diagnostics."""
   for window in GetWindowsForBufferNumber( buffer_number ):
     SetLocationListForWindow( window.number, diagnostics )
 
 
-def SetLocationListForWindow( window_number, diagnostics ):
+def SetLocationListForWindow( window_number: int, diagnostics: List[Dict[str, Union[int, str]]] ) -> None:
   """Populate the location list with diagnostics. Diagnostics should be in
   qflist format; see ":h setqflist" for details."""
   vim.eval( f'setloclist( { window_number }, { json.dumps( diagnostics ) } )' )
 
 
-def OpenLocationList( focus = False, autoclose = False ):
+def OpenLocationList( focus: bool = False, autoclose: bool = False ) -> None:
   """Open the location list to the bottom of the current window with its
   height automatically set to fit all entries. This behavior can be overridden
   by using the YcmLocationOpened autocommand. When focus is set to True, the
@@ -360,13 +363,13 @@ def OpenLocationList( focus = False, autoclose = False ):
     JumpToPreviousWindow()
 
 
-def SetQuickFixList( quickfix_list ):
+def SetQuickFixList( quickfix_list: List[Dict[str, Union[int, str]]] ) -> None:
   """Populate the quickfix list and open it. List should be in qflist format:
   see ":h setqflist" for details."""
   vim.eval( f'setqflist( { json.dumps( quickfix_list ) } )' )
 
 
-def OpenQuickFixList( focus = False, autoclose = False ):
+def OpenQuickFixList( focus: bool = False, autoclose: bool = False ) -> None:
   """Open the quickfix list to full width at the bottom of the screen with its
   height automatically set to fit all entries. This behavior can be overridden
   by using the YcmQuickFixOpened autocommand.
@@ -385,7 +388,7 @@ def OpenQuickFixList( focus = False, autoclose = False ):
     JumpToPreviousWindow()
 
 
-def ComputeFittingHeightForCurrentWindow():
+def ComputeFittingHeightForCurrentWindow() -> int:
   current_window = vim.current.window
   if not current_window.options[ 'wrap' ]:
     return len( vim.current.buffer )
@@ -397,11 +400,11 @@ def ComputeFittingHeightForCurrentWindow():
   return fitting_height
 
 
-def SetFittingHeightForCurrentWindow():
+def SetFittingHeightForCurrentWindow() -> None:
   vim.command( f'{ ComputeFittingHeightForCurrentWindow() }wincmd _' )
 
 
-def ConvertDiagnosticsToQfList( diagnostics ):
+def ConvertDiagnosticsToQfList( diagnostics: Union[List[Dict[str, Union[str, Dict[str, Union[int, str]]]]], List[Dict[str, Union[str, Dict[str, Union[int, str]], Dict[str, Dict[str, Union[int, str]]]]]]] ) -> List[Dict[str, Union[int, str]]]:
   def ConvertDiagnosticToQfFormat( diagnostic ):
     # See :h getqflist for a description of the dictionary fields.
     # Note that, as usual, Vim is completely inconsistent about whether
@@ -434,11 +437,11 @@ def ConvertDiagnosticsToQfList( diagnostics ):
   return [ ConvertDiagnosticToQfFormat( x ) for x in diagnostics ]
 
 
-def GetVimGlobalsKeys():
+def GetVimGlobalsKeys() -> Dict[str, Union[str, int, Dict[str, int], Dict[str, List[str]], List[str]]]:
   return vim.eval( 'keys( g: )' )
 
 
-def VimExpressionToPythonType( vim_expression ):
+def VimExpressionToPythonType( vim_expression: Union[str, List[int], Dict[int, int], bytes] ) -> Any:
   """Returns a Python type from the return value of the supplied Vim expression.
   If the expression returns a list, dict or other non-string type, then it is
   returned unmodified. If the string return can be converted to an
@@ -455,21 +458,21 @@ def VimExpressionToPythonType( vim_expression ):
     return ToUnicode( result )
 
 
-def HiddenEnabled( buffer_object ):
+def HiddenEnabled( buffer_object: VimBuffer ) -> bool:
   if buffer_object.options[ 'bh' ] == "hide":
     return True
   return GetBoolValue( '&hidden' )
 
 
-def BufferIsUsable( buffer_object ):
+def BufferIsUsable( buffer_object: VimBuffer ) -> bool:
   return not BufferModified( buffer_object ) or HiddenEnabled( buffer_object )
 
 
-def EscapeFilepathForVimCommand( filepath ):
+def EscapeFilepathForVimCommand( filepath: str ) -> str:
   return GetVariableValue( f"fnameescape('{ EscapeForVim( filepath ) }')" )
 
 
-def ComparePaths( path1, path2 ):
+def ComparePaths( path1: str, path2: str ) -> bool:
   # Assume that the file system is case-insensitive on Windows and macOS and
   # case-sensitive on other platforms. While this is not necessarily true, being
   # completely correct here is not worth the trouble as this assumption
@@ -481,7 +484,7 @@ def ComparePaths( path1, path2 ):
 
 
 # Both |line| and |column| need to be 1-based
-def TryJumpLocationInTab( tab, filename, line, column ):
+def TryJumpLocationInTab( tab: MagicMock, filename: str, line: int, column: int ) -> bool:
   for win in tab.windows:
     if ComparePaths( GetBufferFilepath( win.buffer ), filename ):
       vim.current.tabpage = tab
@@ -496,7 +499,7 @@ def TryJumpLocationInTab( tab, filename, line, column ):
 
 
 # Both |line| and |column| need to be 1-based
-def TryJumpLocationInTabs( filename, line, column ):
+def TryJumpLocationInTabs( filename: str, line: int, column: int ) -> bool:
   for tab in vim.tabpages:
     if TryJumpLocationInTab( tab, filename, line, column ):
       return True
@@ -505,14 +508,14 @@ def TryJumpLocationInTabs( filename, line, column ):
 
 
 # Maps User command to vim command
-def GetVimCommand( user_command, default = 'edit' ):
+def GetVimCommand( user_command: str, default: str = 'edit' ) -> str:
   vim_command = BUFFER_COMMAND_MAP.get( user_command, default )
   if vim_command == 'edit' and not BufferIsUsable( vim.current.buffer ):
     vim_command = 'split'
   return vim_command
 
 
-def JumpToFile( filename, command, modifiers ):
+def JumpToFile( filename: str, command: str, modifiers: str ) -> bool:
   vim_command = GetVimCommand( command )
   try:
     escaped_filename = EscapeFilepathForVimCommand( filename )
@@ -534,7 +537,7 @@ def JumpToFile( filename, command, modifiers ):
 
 
 # Both |line| and |column| need to be 1-based
-def JumpToLocation( filename, line, column, modifiers, command ):
+def JumpToLocation( filename: str, line: int, column: int, modifiers: str, command: str ) -> None:
   # Add an entry to the jumplist
   vim.command( "normal! m'" )
 
@@ -577,7 +580,7 @@ def NumLinesInBuffer( buffer_object ):
 # Calling this function from the non-GUI thread will sometimes crash Vim. At
 # the time of writing, YCM only uses the GUI thread inside Vim (this used to
 # not be the case).
-def PostVimMessage( message, warning = True, truncate = False ):
+def PostVimMessage( message: Union[str, int, float, bool], warning: bool = True, truncate: bool = False ) -> None:
   """Display a message on the Vim status line. By default, the message is
   highlighted and logged to Vim command-line history (see :h history).
   Unset the |warning| parameter to disable this behavior. Set the |truncate|
@@ -652,13 +655,13 @@ def PresentDialog( message, choices, default_choice_index = 0 ):
     return -1
 
 
-def Confirm( message ):
+def Confirm( message: str ) -> bool:
   """Display |message| with Ok/Cancel operations. Returns True if the user
   selects Ok"""
   return bool( PresentDialog( message, [ "Ok", "Cancel" ] ) == 0 )
 
 
-def SelectFromList( prompt, items ):
+def SelectFromList( prompt: str, items: List[str] ) -> int:
   """Ask the user to select an item from the list |items|.
 
   Presents the user with |prompt| followed by a numbered list of |items|,
@@ -710,15 +713,15 @@ def SelectFromList( prompt, items ):
   return selected
 
 
-def EscapeForVim( text ):
+def EscapeForVim( text: str ) -> str:
   return ToUnicode( text.replace( "'", "''" ) )
 
 
-def CurrentFiletypes():
+def CurrentFiletypes() -> List[str]:
   return ToUnicode( vim.eval( "&filetype" ) ).split( '.' )
 
 
-def CurrentFiletypesEnabled( disabled_filetypes ):
+def CurrentFiletypesEnabled( disabled_filetypes: Dict[str, int] ) -> bool:
   """Return False if one of the current filetypes is disabled, True otherwise.
   |disabled_filetypes| must be a dictionary where keys are the disabled
   filetypes and values are unimportant. The special key '*' matches all
@@ -727,12 +730,12 @@ def CurrentFiletypesEnabled( disabled_filetypes ):
            not any( x in disabled_filetypes for x in CurrentFiletypes() ) )
 
 
-def GetBufferFiletypes( bufnr ):
+def GetBufferFiletypes( bufnr: int ) -> List[str]:
   command = f'getbufvar({ bufnr }, "&ft")'
   return ToUnicode( vim.eval( command ) ).split( '.' )
 
 
-def FiletypesForBuffer( buffer_object ):
+def FiletypesForBuffer( buffer_object: VimBuffer ) -> List[str]:
   # NOTE: Getting &ft for other buffers only works when the buffer has been
   # visited by the user at least once, which is true for modified buffers
 
@@ -749,23 +752,23 @@ def VariableExists( variable ):
   return GetBoolValue( f"exists( '{ EscapeForVim( variable ) }' )" )
 
 
-def SetVariableValue( variable, value ):
+def SetVariableValue( variable: str, value: Union[int, str] ) -> None:
   vim.command( f"let { variable } = { json.dumps( value ) }" )
 
 
-def GetVariableValue( variable ):
+def GetVariableValue( variable: str ) -> str:
   return vim.eval( variable )
 
 
-def GetBoolValue( variable ):
+def GetBoolValue( variable: str ) -> bool:
   return bool( int( vim.eval( variable ) ) )
 
 
-def GetIntValue( variable ):
+def GetIntValue( variable: str ) -> int:
   return int( vim.eval( variable ) )
 
 
-def _SortChunksByFile( chunks ):
+def _SortChunksByFile( chunks: List[Dict[str, Union[str, Dict[str, Dict[str, Union[int, str]]]]]] ) -> DefaultDict[str, List[Dict[str, Union[str, Dict[str, Dict[str, Union[int, str]]]]]]]:
   """Sort the members of the list |chunks| (which must be a list of dictionaries
   conforming to ycmd.responses.FixItChunk) by their filepath. Returns a new
   list in arbitrary order."""
@@ -779,7 +782,7 @@ def _SortChunksByFile( chunks ):
   return chunks_by_file
 
 
-def _GetNumNonVisibleFiles( file_list ):
+def _GetNumNonVisibleFiles( file_list: List[str] ) -> int:
   """Returns the number of file in the iterable list of files |file_list| which
   are not curerntly open in visible windows"""
   return len(
@@ -787,7 +790,7 @@ def _GetNumNonVisibleFiles( file_list ):
         if not BufferIsVisible( GetBufferNumberForFilename( f ) ) ] )
 
 
-def _OpenFileInSplitIfNeeded( filepath ):
+def _OpenFileInSplitIfNeeded( filepath: str ) -> Tuple[int, bool]:
   """Ensure that the supplied filepath is open in a visible window, opening a
   new split if required. Returns the buffer number of the file and an indication
   of whether or not a new split was opened.
@@ -840,7 +843,7 @@ def _OpenFileInSplitIfNeeded( filepath ):
   return ( buffer_num, True )
 
 
-def ReplaceChunks( chunks, silent=False ):
+def ReplaceChunks( chunks: List[Dict[str, Union[str, Dict[str, Dict[str, Union[int, str]]]]]], silent: bool=False ) -> None:
   """Apply the source file deltas supplied in |chunks| to arbitrary files.
   |chunks| is a list of changes defined by ycmd.responses.FixItChunk,
   which may apply arbitrary modifications to arbitrary files.
@@ -929,7 +932,7 @@ def ReplaceChunksInBuffer( chunks, vim_buffer ):
                      for chunk in chunks ] )
 
 
-def SplitLines( contents ):
+def SplitLines( contents: bytes ) -> List[bytes]:
   """Return a list of each of the lines in the byte string |contents|.
   Behavior is equivalent to str.splitlines with the following exceptions:
    - empty strings are returned as [ '' ];
@@ -954,7 +957,7 @@ def SplitLines( contents ):
 #
 # NOTE: Works exclusively with bytes() instances and byte offsets as returned
 # by ycmd and used within the Vim buffers
-def ReplaceChunk( start, end, replacement_text, vim_buffer ):
+def ReplaceChunk( start: Dict[str, Union[int, str]], end: Dict[str, Union[int, str]], replacement_text: str, vim_buffer: VimBuffer ) -> Dict[str, Union[int, str]]:
   # ycmd's results are all 1-based, but vim's/python's are all 0-based
   # (so we do -1 on all of the values)
   start_line = start[ 'line_num' ] - 1
@@ -1010,7 +1013,7 @@ def ReplaceChunk( start, end, replacement_text, vim_buffer ):
   }
 
 
-def InsertNamespace( namespace ):
+def InsertNamespace( namespace: str ) -> None:
   if VariableExists( 'g:ycm_csharp_insert_namespace_expr' ):
     expr = GetVariableValue( 'g:ycm_csharp_insert_namespace_expr' )
     if expr:
@@ -1036,24 +1039,24 @@ def SearchInCurrentBuffer( pattern ):
   return GetIntValue( f"search('{ EscapeForVim( pattern ) }', 'Wcnb')" )
 
 
-def LineTextInCurrentBuffer( line_number ):
+def LineTextInCurrentBuffer( line_number: int ) -> str:
   """ Returns the text on the 1-indexed line (NOT 0-indexed) """
   return vim.current.buffer[ line_number - 1 ]
 
 
-def ClosePreviewWindow():
+def ClosePreviewWindow() -> None:
   """ Close the preview window if it is present, otherwise do nothing """
   vim.command( 'silent! pclose!' )
 
 
-def JumpToPreviewWindow():
+def JumpToPreviewWindow() -> bool:
   """ Jump the vim cursor to the preview window, which must be active. Returns
   boolean indicating if the cursor ended up in the preview window """
   vim.command( 'silent! wincmd P' )
   return vim.current.window.options[ 'previewwindow' ]
 
 
-def JumpToPreviousWindow():
+def JumpToPreviousWindow() -> None:
   """ Jump the vim cursor to its previous window position """
   vim.command( 'silent! wincmd p' )
 
@@ -1063,12 +1066,12 @@ def JumpToTab( tab_number ):
   vim.command( f'silent! tabn { tab_number }' )
 
 
-def OpenFileInPreviewWindow( filename ):
+def OpenFileInPreviewWindow( filename: str ) -> None:
   """ Open the supplied filename in the preview window """
   vim.command( 'silent! pedit! ' + filename )
 
 
-def WriteToPreviewWindow( message ):
+def WriteToPreviewWindow( message: str ) -> None:
   """ Display the supplied message in the preview window """
 
   # This isn't something that comes naturally to Vim. Vim only wants to show
@@ -1110,13 +1113,13 @@ def WriteToPreviewWindow( message ):
     PostVimMessage( message, warning = False )
 
 
-def BufferIsVisibleForFilename( filename ):
+def BufferIsVisibleForFilename( filename: str ) -> bool:
   """Check if a buffer exists for a specific file."""
   buffer_number = GetBufferNumberForFilename( filename )
   return BufferIsVisible( buffer_number )
 
 
-def CloseBuffersForFilename( filename ):
+def CloseBuffersForFilename( filename: str ) -> None:
   """Close all buffers for a specific file."""
   buffer_number = GetBufferNumberForFilename( filename )
   while buffer_number != -1:
@@ -1128,7 +1131,7 @@ def CloseBuffersForFilename( filename ):
     buffer_number = new_buffer_number
 
 
-def OpenFilename( filename, options = {} ):
+def OpenFilename( filename: str, options: Dict[str, Union[int, bool, str]] = {} ) -> None:
   """Open a file in Vim. Following options are available:
   - command: specify which Vim command is used to open the file. Choices
   are same-buffer, horizontal-split, vertical-split, and new-tab (default:
@@ -1196,7 +1199,7 @@ def OpenFilename( filename, options = {} ):
       JumpToPreviousWindow()
 
 
-def _SetUpLoadedBuffer( command, filename, fix, position, watch ):
+def _SetUpLoadedBuffer( command: str, filename: str, fix: bool, position: str, watch: bool ) -> None:
   """After opening a buffer, configure it according to the supplied options,
   which are as defined by the OpenFilename method."""
 
@@ -1214,7 +1217,7 @@ def _SetUpLoadedBuffer( command, filename, fix, position, watch ):
     vim.command( 'silent! normal! Gzz' )
 
 
-def BuildRange( start_line, end_line ):
+def BuildRange( start_line: int, end_line: int ) -> Dict[str, Dict[str, Dict[str, int]]]:
   # Vim only returns the starting and ending lines of the range of a command.
   # Check if those lines correspond to a previous visual selection and if they
   # do, use the columns of that selection to build the range.
@@ -1243,7 +1246,7 @@ def BuildRange( start_line, end_line ):
 
 
 # Expects version_string in 'MAJOR.MINOR.PATCH' format, e.g. '8.1.278'
-def VimVersionAtLeast( version_string ):
+def VimVersionAtLeast( version_string: str ) -> bool:
   major, minor, patch = ( int( x ) for x in version_string.split( '.' ) )
 
   # For Vim 8.1.278, v:version is '801'
@@ -1255,7 +1258,7 @@ def VimVersionAtLeast( version_string ):
   return GetBoolValue( f"has( 'patch{ patch }' )" )
 
 
-def AutoCloseOnCurrentBuffer( name ):
+def AutoCloseOnCurrentBuffer( name: str ) -> None:
   """Create an autocommand group with name |name| on the current buffer that
   automatically closes it when leaving its window."""
   vim.command( f'augroup { name }' )
@@ -1267,7 +1270,7 @@ def AutoCloseOnCurrentBuffer( name ):
 
 
 @memoize
-def VimSupportsPopupWindows():
+def VimSupportsPopupWindows() -> bool:
   return VimHasFunctions( 'popup_create',
                           'popup_move',
                           'popup_hide',
@@ -1279,11 +1282,11 @@ def VimSupportsPopupWindows():
 
 
 @memoize
-def VimHasFunction( func ):
+def VimHasFunction( func: str ) -> bool:
   return bool( GetIntValue( f"exists( '*{ EscapeForVim( func ) }' )" ) )
 
 
-def VimHasFunctions( *functions ):
+def VimHasFunctions( *functions) -> bool:
   return all( VimHasFunction( f ) for f in functions )
 
 
@@ -1298,13 +1301,13 @@ def ScreenPositionForLineColumnInWindow( window, line, column ):
                               f'{ column } )' )
 
 
-def UsingPreviewPopup():
+def UsingPreviewPopup() -> bool:
   return 'popup' in ToUnicode( vim.options[ 'completeopt' ] ).split( ',' )
 
 
-def DisplayWidth():
+def DisplayWidth() -> int:
   return GetIntValue( '&columns' )
 
 
-def DisplayWidthOfString( s ):
+def DisplayWidthOfString( s: str ) -> int:
   return GetIntValue( f"strdisplaywidth( '{ EscapeForVim( s ) }' )" )

@@ -24,7 +24,7 @@ import vim
 from subprocess import PIPE
 from tempfile import NamedTemporaryFile
 from ycm import base, paths, signature_help, vimsupport
-from ycm.buffer import BufferDict
+from ycm.buffer import Buffer, BufferDict
 from ycmd import utils
 from ycmd.request_wrap import RequestWrap
 from ycm.omni_completer import OmniCompleter
@@ -42,9 +42,11 @@ from ycm.client.omni_completion_request import OmniCompletionRequest
 from ycm.client.event_notification import SendEventNotificationAsync
 from ycm.client.shutdown_request import SendShutdownRequest
 from ycm.client.messages_request import MessagesPoll
+from typing import Any, Dict, List, Optional, Tuple, Union
+from unittest.mock import MagicMock
 
 
-def PatchNoProxy():
+def PatchNoProxy() -> None:
   current_value = os.environ.get( 'no_proxy', '' )
   additions = '127.0.0.1,localhost'
   os.environ[ 'no_proxy' ] = ( additions if not current_value
@@ -93,7 +95,7 @@ HANDLE_FLAG_INHERIT = 0x00000001
 
 
 class YouCompleteMe:
-  def __init__( self ):
+  def __init__( self ) -> None:
     self._available_completers = {}
     self._user_options = None
     self._user_notified_about_crash = False
@@ -116,7 +118,7 @@ class YouCompleteMe:
     self._ycmd_keepalive.Start()
 
 
-  def _SetUpServer( self ):
+  def _SetUpServer( self ) -> None:
     self._available_completers = {}
     self._user_notified_about_crash = False
     self._filetypes_with_keywords_loaded = set()
@@ -177,7 +179,7 @@ class YouCompleteMe:
                                           stdout = PIPE, stderr = PIPE )
 
 
-  def _SetUpLogging( self ):
+  def _SetUpLogging( self ) -> None:
     def FreeFileFromOtherProcesses( file_object ):
       if utils.OnWindows():
         from ctypes import windll
@@ -209,7 +211,7 @@ class YouCompleteMe:
     self._logger.addHandler( handler )
 
 
-  def _SetLogLevel( self ):
+  def _SetLogLevel( self ) -> None:
     log_level = self._user_options[ 'log_level' ]
     numeric_level = getattr( logging, log_level.upper(), None )
     if not isinstance( numeric_level, int ):
@@ -217,23 +219,23 @@ class YouCompleteMe:
     self._logger.setLevel( numeric_level )
 
 
-  def IsServerAlive( self ):
+  def IsServerAlive( self ) -> bool:
     # When the process hasn't finished yet, poll() returns None.
     return bool( self._server_popen ) and self._server_popen.poll() is None
 
 
-  def CheckIfServerIsReady( self ):
+  def CheckIfServerIsReady( self ) -> bool:
     if not self._server_is_ready_with_cache and self.IsServerAlive():
       self._server_is_ready_with_cache = BaseRequest().GetDataFromHandler(
           'ready', display_message = False )
     return self._server_is_ready_with_cache
 
 
-  def IsServerReady( self ):
+  def IsServerReady( self ) -> bool:
     return self._server_is_ready_with_cache
 
 
-  def NotifyUserIfServerCrashed( self ):
+  def NotifyUserIfServerCrashed( self ) -> None:
     if ( not self._server_popen or self._user_notified_about_crash or
          self.IsServerAlive() ):
       return
@@ -267,17 +269,17 @@ class YouCompleteMe:
     return self._server_popen.pid
 
 
-  def _ShutdownServer( self ):
+  def _ShutdownServer( self ) -> None:
     SendShutdownRequest()
 
 
-  def RestartServer( self ):
+  def RestartServer( self ) -> None:
     vimsupport.PostVimMessage( 'Restarting ycmd server...' )
     self._ShutdownServer()
     self._SetUpServer()
 
 
-  def SendCompletionRequest( self, force_semantic = False ):
+  def SendCompletionRequest( self, force_semantic: bool = False ) -> None:
     request_data = BuildRequestData()
     request_data[ 'force_semantic' ] = force_semantic
 
@@ -294,19 +296,19 @@ class YouCompleteMe:
     self._latest_completion_request.Start()
 
 
-  def CompletionRequestReady( self ):
+  def CompletionRequestReady( self ) -> bool:
     return bool( self._latest_completion_request and
                  self._latest_completion_request.Done() )
 
 
-  def GetCompletionResponse( self ):
+  def GetCompletionResponse( self ) -> Dict[str, Union[List[Dict[str, Union[int, str]]], int]]:
     response = self._latest_completion_request.Response()
     response[ 'completions' ] = base.AdjustCandidateInsertionText(
         response[ 'completions' ] )
     return response
 
 
-  def SignatureHelpAvailableRequestComplete( self, filetype, send_new=True ):
+  def SignatureHelpAvailableRequestComplete( self, filetype: str, send_new: bool=True ) -> bool:
     """Triggers or polls signature help available request. Returns whether or
     not the request is complete. When send_new is False, won't send a new
     request, only return the current status (This is used by the tests)"""
@@ -373,10 +375,10 @@ class YouCompleteMe:
 
 
   def _GetCommandRequestArguments( self,
-                                   arguments,
-                                   has_range,
-                                   start_line,
-                                   end_line ):
+                                   arguments: List[str],
+                                   has_range: bool,
+                                   start_line: int,
+                                   end_line: int ) -> Union[Tuple[List[str], Dict[str, Union[Dict[str, Union[int, bool]], Dict[str, str]]]], Tuple[List[str], Dict[str, Union[Dict[str, Union[int, bool]], Dict[str, Dict[str, int]]]]], Tuple[List[str], Dict[str, Dict[str, Union[int, bool]]]]]:
     final_arguments = []
     for argument in arguments:
       # The ft= option which specifies the completer when running a command is
@@ -401,11 +403,11 @@ class YouCompleteMe:
 
 
   def SendCommandRequest( self,
-                          arguments,
-                          modifiers,
-                          has_range,
-                          start_line,
-                          end_line ):
+                          arguments: List[str],
+                          modifiers: str,
+                          has_range: bool,
+                          start_line: int,
+                          end_line: int ) -> MagicMock:
     final_arguments, extra_data = self._GetCommandRequestArguments(
       arguments,
       has_range,
@@ -427,13 +429,13 @@ class YouCompleteMe:
 
 
 
-  def GetDefinedSubcommands( self ):
+  def GetDefinedSubcommands( self ) -> List[str]:
     subcommands = BaseRequest().PostDataToHandler( BuildRequestData(),
                                                    'defined_subcommands' )
     return subcommands if subcommands else []
 
 
-  def GetCurrentCompletionRequest( self ):
+  def GetCurrentCompletionRequest( self ) -> Optional[CompletionRequest]:
     return self._latest_completion_request
 
 
@@ -441,7 +443,7 @@ class YouCompleteMe:
     return self._omnicomp
 
 
-  def FiletypeCompleterExistsForFiletype( self, filetype ):
+  def FiletypeCompleterExistsForFiletype( self, filetype: str ) -> bool:
     try:
       return self._available_completers[ filetype ]
     except KeyError:
@@ -455,12 +457,12 @@ class YouCompleteMe:
     return exists_completer
 
 
-  def NativeFiletypeCompletionAvailable( self ):
+  def NativeFiletypeCompletionAvailable( self ) -> bool:
     return any( self.FiletypeCompleterExistsForFiletype( x ) for x in
                 vimsupport.CurrentFiletypes() )
 
 
-  def NativeFiletypeCompletionUsable( self ):
+  def NativeFiletypeCompletionUsable( self ) -> bool:
     disabled_filetypes = self._user_options[
       'filetype_specific_completion_to_disable' ]
     return ( vimsupport.CurrentFiletypesEnabled( disabled_filetypes ) and
@@ -471,7 +473,7 @@ class YouCompleteMe:
     return self.CurrentBuffer().NeedsReparse()
 
 
-  def UpdateWithNewDiagnosticsForFile( self, filepath, diagnostics ):
+  def UpdateWithNewDiagnosticsForFile( self, filepath: str, diagnostics: List[Dict[str, Union[str, Dict[str, Union[int, str]], Dict[str, Dict[str, Union[int, str]]]]]] ) -> None:
     if not self._user_options[ 'show_diagnostics_ui' ]:
       return
 
@@ -505,7 +507,7 @@ class YouCompleteMe:
       pass
 
 
-  def OnPeriodicTick( self ):
+  def OnPeriodicTick( self ) -> bool:
     if not self.IsServerAlive():
       # Server has died. We'll reset when the server is started again.
       return False
@@ -526,7 +528,7 @@ class YouCompleteMe:
     return any( self._message_poll_requests.values() )
 
 
-  def OnFileReadyToParse( self ):
+  def OnFileReadyToParse( self ) -> None:
     if not self.IsServerAlive():
       self.NotifyUserIfServerCrashed()
       return
@@ -546,11 +548,11 @@ class YouCompleteMe:
     SendEventNotificationAsync( 'FileSave', saved_buffer_number )
 
 
-  def OnBufferUnload( self, deleted_buffer_number ):
+  def OnBufferUnload( self, deleted_buffer_number: int ) -> None:
     SendEventNotificationAsync( 'BufferUnload', deleted_buffer_number )
 
 
-  def UpdateMatches( self ):
+  def UpdateMatches( self ) -> None:
     self.CurrentBuffer().UpdateMatches()
 
 
@@ -561,7 +563,7 @@ class YouCompleteMe:
     self.OnBufferVisit()
 
 
-  def OnBufferVisit( self ):
+  def OnBufferVisit( self ) -> None:
     for filetype in vimsupport.CurrentFiletypes():
       # Send the signature help available request for these filetypes if we need
       # to (as a side effect of checking if it is complete)
@@ -572,7 +574,7 @@ class YouCompleteMe:
     SendEventNotificationAsync( 'BufferVisit', extra_data = extra_data )
 
 
-  def CurrentBuffer( self ):
+  def CurrentBuffer( self ) -> Buffer:
     return self._buffers[ vimsupport.GetCurrentBufferNumber() ]
 
 
@@ -580,18 +582,18 @@ class YouCompleteMe:
     SendEventNotificationAsync( 'InsertLeave' )
 
 
-  def OnCursorMoved( self ):
+  def OnCursorMoved( self ) -> None:
     self.CurrentBuffer().OnCursorMoved()
 
 
-  def _CleanLogfile( self ):
+  def _CleanLogfile( self ) -> None:
     logging.shutdown()
     if not self._user_options[ 'keep_logfiles' ]:
       if self._client_logfile:
         utils.RemoveIfExists( self._client_logfile )
 
 
-  def OnVimLeave( self ):
+  def OnVimLeave( self ) -> None:
     self._ShutdownServer()
     self._CleanLogfile()
 
@@ -600,31 +602,31 @@ class YouCompleteMe:
     SendEventNotificationAsync( 'CurrentIdentifierFinished' )
 
 
-  def OnCompleteDone( self ):
+  def OnCompleteDone( self ) -> None:
     completion_request = self.GetCurrentCompletionRequest()
     if completion_request:
       completion_request.OnCompleteDone()
 
 
-  def GetErrorCount( self ):
+  def GetErrorCount( self ) -> int:
     return self.CurrentBuffer().GetErrorCount()
 
 
-  def GetWarningCount( self ):
+  def GetWarningCount( self ) -> int:
     return self.CurrentBuffer().GetWarningCount()
 
 
-  def _PopulateLocationListWithLatestDiagnostics( self ):
+  def _PopulateLocationListWithLatestDiagnostics( self ) -> bool:
     return self.CurrentBuffer().PopulateLocationList()
 
 
-  def FileParseRequestReady( self ):
+  def FileParseRequestReady( self ) -> bool:
     # Return True if server is not ready yet, to stop repeating check timer.
     return ( not self.IsServerReady() or
              self.CurrentBuffer().FileParseRequestReady() )
 
 
-  def HandleFileParseRequest( self, block = False ):
+  def HandleFileParseRequest( self, block: bool = False ) -> None:
     if not self.IsServerReady():
       return
 
@@ -658,11 +660,11 @@ class YouCompleteMe:
       current_buffer.MarkResponseHandled()
 
 
-  def ShouldResendFileParseRequest( self ):
+  def ShouldResendFileParseRequest( self ) -> bool:
     return self.CurrentBuffer().ShouldResendParseRequest()
 
 
-  def DebugInfo( self ):
+  def DebugInfo( self ) -> str:
     debug_info = ''
     if self._client_logfile:
       debug_info += f'Client logfile: { self._client_logfile }\n'
@@ -679,7 +681,7 @@ class YouCompleteMe:
     return debug_info
 
 
-  def GetLogfiles( self ):
+  def GetLogfiles( self ) -> Dict[str, str]:
     logfiles_list = [ self._client_logfile,
                       self._server_stdout,
                       self._server_stderr ]
@@ -699,7 +701,7 @@ class YouCompleteMe:
     return logfiles
 
 
-  def _OpenLogfile( self, size, mods, logfile ):
+  def _OpenLogfile( self, size: int, mods: str, logfile: str ) -> None:
     # Open log files in a horizontal window with the same behavior as the
     # preview window (same height and winfixheight enabled). Automatically
     # watch for changes. Set the cursor position at the end of the file.
@@ -718,11 +720,11 @@ class YouCompleteMe:
     vimsupport.OpenFilename( logfile, options )
 
 
-  def _CloseLogfile( self, logfile ):
+  def _CloseLogfile( self, logfile: str ) -> None:
     vimsupport.CloseBuffersForFilename( logfile )
 
 
-  def ToggleLogs( self, size, mods, *filenames ):
+  def ToggleLogs( self, size: int, mods: str, *filenames) -> None:
     logfiles = self.GetLogfiles()
     if not filenames:
       sorted_logfiles = sorted( logfiles )
@@ -754,7 +756,7 @@ class YouCompleteMe:
       self._CloseLogfile( logfile )
 
 
-  def ShowDetailedDiagnostic( self ):
+  def ShowDetailedDiagnostic( self ) -> None:
     detailed_diagnostic = BaseRequest().PostDataToHandler(
         BuildRequestData(), 'detailed_diagnostic' )
 
@@ -763,7 +765,7 @@ class YouCompleteMe:
                                  warning = False )
 
 
-  def ForceCompileAndDiagnostics( self ):
+  def ForceCompileAndDiagnostics( self ) -> bool:
     if not self.NativeFiletypeCompletionUsable():
       vimsupport.PostVimMessage(
           'Native filetype completion not supported for current file, '
@@ -778,7 +780,7 @@ class YouCompleteMe:
     return True
 
 
-  def ShowDiagnostics( self ):
+  def ShowDiagnostics( self ) -> None:
     if not self.ForceCompileAndDiagnostics():
       return
 
@@ -791,7 +793,7 @@ class YouCompleteMe:
       vimsupport.OpenLocationList( focus = True )
 
 
-  def _AddSyntaxDataIfNeeded( self, extra_data ):
+  def _AddSyntaxDataIfNeeded( self, extra_data: Dict[str, List[str]] ) -> None:
     if not self._user_options[ 'seed_identifiers_with_syntax' ]:
       return
     filetype = vimsupport.CurrentFiletypes()[ 0 ]
@@ -804,7 +806,7 @@ class YouCompleteMe:
        syntax_parse.SyntaxKeywordsForCurrentBuffer() )
 
 
-  def _AddTagsFilesIfNeeded( self, extra_data ):
+  def _AddTagsFilesIfNeeded( self, extra_data: Dict[Any, Any] ) -> None:
     def GetTagFiles():
       tag_files = vim.eval( 'tagfiles()' )
       return [ os.path.join( utils.GetCurrentDirectory(), tag_file )
@@ -815,7 +817,7 @@ class YouCompleteMe:
     extra_data[ 'tag_files' ] = GetTagFiles()
 
 
-  def _AddExtraConfDataIfNeeded( self, extra_data ):
+  def _AddExtraConfDataIfNeeded( self, extra_data: Dict[str, Any] ) -> None:
     def BuildExtraConfData( extra_conf_vim_data ):
       extra_conf_data = {}
       for expr in extra_conf_vim_data:

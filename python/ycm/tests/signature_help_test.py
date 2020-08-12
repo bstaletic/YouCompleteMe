@@ -20,7 +20,7 @@ from hamcrest import ( assert_that,
 from ycm import signature_help as sh
 
 
-def MakeSignatureHelpBuffer_Empty_test():
+def MakeSignatureHelpBuffer_Empty_test() -> None:
   assert_that( sh._MakeSignatureHelpBuffer( {} ), empty() )
   assert_that( sh._MakeSignatureHelpBuffer( {
     'activeSignature': 0,

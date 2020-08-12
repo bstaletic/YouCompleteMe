@@ -23,9 +23,10 @@ import pytest
 from hamcrest import assert_that
 from unittest.mock import patch, call
 from ycm.client.command_request import CommandRequest
+from typing import Callable, Dict, List, Union
 
 
-def GoToTest( command, response ):
+def GoToTest( command: str, response: Dict[str, Union[int, str]] ) -> None:
   with patch( 'ycm.vimsupport.JumpToLocation' ) as jump_to_location:
     request = CommandRequest( [ command ] )
     request._response = response
@@ -38,7 +39,7 @@ def GoToTest( command, response ):
         'same-buffer' )
 
 
-def GoToListTest( command, response ):
+def GoToListTest( command: str, response: List[Dict[str, Union[int, str]]] ) -> None:
   # Note: the detail of these called are tested by
   # GoToResponse_QuickFix_test, so here we just check that the right call is
   # made
@@ -93,19 +94,19 @@ class GoToResponse_QuickFix_test:
   completer. It mostly proves that we use 1-based indexing for the column
   number."""
 
-  def setup_method( self ):
+  def setup_method( self ) -> None:
     self._request = CommandRequest( [ 'GoToTest' ] )
 
 
-  def teardown_method( self ):
+  def teardown_method( self ) -> None:
     self._request = None
 
 
-  def GoTo_EmptyList_test( self ):
+  def GoTo_EmptyList_test( self ) -> None:
     self._CheckGoToList( [], [] )
 
 
-  def GoTo_SingleItem_List_test( self ):
+  def GoTo_SingleItem_List_test( self ) -> None:
     self._CheckGoToList( [ {
       'filepath':     'dummy_file',
       'line_num':     10,
@@ -119,7 +120,7 @@ class GoToResponse_QuickFix_test:
     } ] )
 
 
-  def GoTo_MultiItem_List_test( self ):
+  def GoTo_MultiItem_List_test( self ) -> None:
     self._CheckGoToList( [ {
       'filepath':     'dummy_file',
       'line_num':     10,
@@ -182,7 +183,7 @@ class Response_Detection_test:
         [ 'FixItWorks',             'String!' ],
         [ 'and8434fd andy garbag!', 10.3 ],
   ] )
-  def BasicResponse_test( self, command, response ):
+  def BasicResponse_test( self, command: str, response: Union[int, str, float, bool] ) -> None:
     def _BasicResponseTest( command, response ):
       with patch( 'vim.command' ) as vim_command:
         request = CommandRequest( [ command ] )
@@ -196,7 +197,7 @@ class Response_Detection_test:
                                          'Refactor',
                                          'GoToHell',
                                          'any_old_garbade!!!21' ] )
-  def FixIt_Response_Empty_test( self, command ):
+  def FixIt_Response_Empty_test( self, command: str ) -> None:
     # Ensures we recognise and handle fixit responses which indicate that there
     # are no fixits available
     def EmptyFixItTest( command ):
@@ -232,7 +233,7 @@ class Response_Detection_test:
       [ 'select from multiple 2',
         MULTI_FIXIT,  MULTI_FIXIT_SECOND_CHUNKS, 1, False ],
     ] )
-  def FixIt_Response_test( self, command, response, chunks, selection, silent ):
+  def FixIt_Response_test( self, command: str, response: Dict[str, Union[List[Dict[str, Union[str, bool, List[Dict[str, bool]]]]], List[Dict[str, Union[bool, List[Dict[str, bool]]]]]]], chunks: List[Dict[str, bool]], selection: int, silent: bool ) -> None:
     # Ensures we recognise and handle fixit responses with some dummy chunk data
     def FixItTest( command, response, chunks, selection, silent ):
       with patch( 'ycm.vimsupport.ReplaceChunks' ) as replace_chunks:
@@ -255,7 +256,7 @@ class Response_Detection_test:
       [ '',            'this is also a message' ],
       [ 'GetType',     'std::string' ],
     ] )
-  def Message_Response_test( self, command, message ):
+  def Message_Response_test( self, command: str, message: str ) -> None:
     # Ensures we correctly recognise and handle responses with a message to show
     # to the user
 
@@ -274,7 +275,7 @@ class Response_Detection_test:
       [ '',            'this is also a message' ],
       [ 'GetDoc',      'std::string\netc\netc' ],
     ] )
-  def Detailed_Info_test( self, command, info ):
+  def Detailed_Info_test( self, command: str, info: str ) -> None:
     # Ensures we correctly detect and handle detailed_info responses which are
     # used to display information in the preview window
 
@@ -297,5 +298,5 @@ class Response_Detection_test:
       [ GoToListTest, 'GoTo',            [] ],
       [ GoToListTest, 'FixItGoto',       [ BASIC_GOTO, BASIC_GOTO ] ],
     ] )
-  def GoTo_Single_test( self, test, command, response ):
+  def GoTo_Single_test( self, test: Callable, command: str, response: Union[List[Dict[str, Union[int, str]]], Dict[str, Union[int, str]]] ) -> None:
     test( command, response )

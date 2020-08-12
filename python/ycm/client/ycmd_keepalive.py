@@ -24,13 +24,13 @@ from ycm.client.base_request import BaseRequest
 # life of the client. By default, ycmd shuts down if it doesn't see a request in
 # a while.
 class YcmdKeepalive:
-  def __init__( self, ping_interval_seconds = 60 * 10 ):
+  def __init__( self, ping_interval_seconds: int = 60 * 10 ) -> None:
     self._keepalive_thread = Thread( target = self._ThreadMain )
     self._keepalive_thread.daemon = True
     self._ping_interval_seconds = ping_interval_seconds
 
 
-  def Start( self ):
+  def Start( self ) -> None:
     self._keepalive_thread.start()
 
 

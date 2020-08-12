@@ -19,24 +19,24 @@ from ycm.client.base_request import BaseRequest, BuildRequestData
 
 
 class CompleterAvailableRequest( BaseRequest ):
-  def __init__( self, filetypes ):
+  def __init__( self, filetypes: str ) -> None:
     super( CompleterAvailableRequest, self ).__init__()
     self.filetypes = filetypes
     self._response = None
 
 
-  def Start( self ):
+  def Start( self ) -> None:
     request_data = BuildRequestData()
     request_data.update( { 'filetypes': self.filetypes } )
     self._response = self.PostDataToHandler( request_data,
                                              'semantic_completion_available' )
 
 
-  def Response( self ):
+  def Response( self ) -> bool:
     return self._response
 
 
-def SendCompleterAvailableRequest( filetypes ):
+def SendCompleterAvailableRequest( filetypes: str ) -> bool:
   request = CompleterAvailableRequest( filetypes )
   # This is a blocking call.
   request.Start()

@@ -25,6 +25,10 @@ from ycm import vimsupport
 from ycmd.utils import ToBytes, GetCurrentDirectory
 from ycmd.hmac_utils import CreateRequestHmac, CreateHmac
 from ycmd.responses import ServerError, UnknownExtraConf
+from concurrent.futures._base import Future
+from requests.models import Response
+from typing import Any, Dict, List, Optional, Union
+from unittest.mock import MagicMock
 
 _HEADERS = { 'content-type': 'application/json' }
 _CONNECT_TIMEOUT_SEC = 0.01
@@ -36,7 +40,7 @@ _logger = logging.getLogger( __name__ )
 
 class BaseRequest:
 
-  def __init__( self ):
+  def __init__( self ) -> None:
     self._should_resend = False
 
 
@@ -44,7 +48,7 @@ class BaseRequest:
     pass
 
 
-  def Done( self ):
+  def Done( self ) -> bool:
     return True
 
 
@@ -52,14 +56,14 @@ class BaseRequest:
     return {}
 
 
-  def ShouldResend( self ):
+  def ShouldResend( self ) -> bool:
     return self._should_resend
 
 
   def HandleFuture( self,
-                    future,
-                    display_message = True,
-                    truncate_message = False ):
+                    future: Union[MagicMock, Future],
+                    display_message: bool = True,
+                    truncate_message: bool = False ) -> Any:
     """Get the server response from a |future| object and catch any exception
     while doing so. If an exception is raised because of a unknown
     .ycm_extra_conf.py file, load the file or ignore it after asking the user.
@@ -96,11 +100,11 @@ class BaseRequest:
   # See the HandleFuture method for the |display_message| and |truncate_message|
   # parameters.
   def GetDataFromHandler( self,
-                          handler,
-                          timeout = _READ_TIMEOUT_SEC,
-                          display_message = True,
-                          truncate_message = False,
-                          payload = None ):
+                          handler: str,
+                          timeout: int = _READ_TIMEOUT_SEC,
+                          display_message: bool = True,
+                          truncate_message: bool = False,
+                          payload: None = None ) -> Optional[bool]:
     return self.HandleFuture(
         self.GetDataFromHandlerAsync( handler, timeout, payload ),
         display_message,
@@ -108,9 +112,9 @@ class BaseRequest:
 
 
   def GetDataFromHandlerAsync( self,
-                               handler,
-                               timeout = _READ_TIMEOUT_SEC,
-                               payload = None ):
+                               handler: str,
+                               timeout: int = _READ_TIMEOUT_SEC,
+                               payload: Optional[Dict[str, str]] = None ) -> Future:
     return BaseRequest._TalkToHandlerAsync(
         '', handler, 'GET', timeout, payload )
 
@@ -121,11 +125,11 @@ class BaseRequest:
   # See the HandleFuture method for the |display_message| and |truncate_message|
   # parameters.
   def PostDataToHandler( self,
-                         data,
-                         handler,
-                         timeout = _READ_TIMEOUT_SEC,
-                         display_message = True,
-                         truncate_message = False ):
+                         data: Dict[str, Union[str, int, Dict[str, Dict[str, Union[List[str], str]]], List[Dict[str, Union[int, str]]], Dict[str, str]]],
+                         handler: str,
+                         timeout: Union[int, float] = _READ_TIMEOUT_SEC,
+                         display_message: bool = True,
+                         truncate_message: bool = False ) -> Any:
     return self.HandleFuture(
         BaseRequest.PostDataToHandlerAsync( data, handler, timeout ),
         display_message,
@@ -136,7 +140,7 @@ class BaseRequest:
   # |timeout| is num seconds to tolerate no response from server before giving
   # up; see Requests docs for details (we just pass the param along).
   @staticmethod
-  def PostDataToHandlerAsync( data, handler, timeout = _READ_TIMEOUT_SEC ):
+  def PostDataToHandlerAsync( data: Dict[str, Any], handler: str, timeout: Union[int, float] = _READ_TIMEOUT_SEC ) -> Future:
     return BaseRequest._TalkToHandlerAsync( data, handler, 'POST', timeout )
 
 
@@ -145,11 +149,11 @@ class BaseRequest:
   # |timeout| is num seconds to tolerate no response from server before giving
   # up; see Requests docs for details (we just pass the param along).
   @staticmethod
-  def _TalkToHandlerAsync( data,
-                           handler,
-                           method,
-                           timeout = _READ_TIMEOUT_SEC,
-                           payload = None ):
+  def _TalkToHandlerAsync( data: Any,
+                           handler: str,
+                           method: str,
+                           timeout: Union[int, float] = _READ_TIMEOUT_SEC,
+                           payload: Optional[Dict[str, str]] = None ) -> Future:
     request_uri = _BuildUri( handler )
     if method == 'POST':
       sent_data = _ToUtf8Json( data )
@@ -176,7 +180,7 @@ class BaseRequest:
 
 
   @staticmethod
-  def _ExtraHeaders( method, request_uri, request_body = None ):
+  def _ExtraHeaders( method: str, request_uri: bytes, request_body: Optional[bytes] = None ) -> Dict[str, Union[str, bytes]]:
     if not request_body:
       request_body = bytes( b'' )
     headers = dict( _HEADERS )
@@ -201,7 +205,7 @@ class BaseRequest:
 
 
   @classmethod
-  def Session( cls ):
+  def Session( cls ) -> FuturesSession:
     try:
       return cls.session
     except AttributeError:
@@ -216,7 +220,7 @@ class BaseRequest:
   hmac_secret = ''
 
 
-def BuildRequestData( buffer_number = None ):
+def BuildRequestData( buffer_number: Optional[int] = None ) -> Dict[str, Union[str, int, Dict[str, Dict[str, Union[List[str], str]]]]]:
   """Build request for the current buffer or the buffer with number
   |buffer_number| if specified."""
   working_dir = GetCurrentDirectory()
@@ -248,7 +252,7 @@ def BuildRequestData( buffer_number = None ):
   }
 
 
-def _JsonFromFuture( future ):
+def _JsonFromFuture( future: Union[MagicMock, Future] ) -> Any:
   response = future.result()
   _logger.debug( 'RX: %s\n%s', response, response.text )
   _ValidateResponseObject( response )
@@ -264,17 +268,17 @@ def _JsonFromFuture( future ):
   return None
 
 
-def _LoadExtraConfFile( filepath ):
+def _LoadExtraConfFile( filepath: str ) -> None:
   BaseRequest().PostDataToHandler( { 'filepath': filepath },
                                    'load_extra_conf_file' )
 
 
-def _IgnoreExtraConfFile( filepath ):
+def _IgnoreExtraConfFile( filepath: str ) -> None:
   BaseRequest().PostDataToHandler( { 'filepath': filepath },
                                    'ignore_extra_conf_file' )
 
 
-def DisplayServerException( exception, truncate_message = False ):
+def DisplayServerException( exception: Union[RuntimeError, ServerError], truncate_message: bool = False ) -> None:
   serialized_exception = str( exception )
 
   # We ignore the exception about the file already being parsed since it comes
@@ -284,11 +288,11 @@ def DisplayServerException( exception, truncate_message = False ):
   vimsupport.PostVimMessage( serialized_exception, truncate = truncate_message )
 
 
-def _ToUtf8Json( data ):
+def _ToUtf8Json( data: Dict[str, Any] ) -> bytes:
   return ToBytes( json.dumps( data ) if data else None )
 
 
-def _ValidateResponseObject( response ):
+def _ValidateResponseObject( response: Response ) -> bool:
   our_hmac = CreateHmac( response.content, BaseRequest.hmac_secret )
   their_hmac = ToBytes( b64decode( response.headers[ _HMAC_HEADER ] ) )
   if not compare_digest( our_hmac, their_hmac ):
@@ -296,11 +300,11 @@ def _ValidateResponseObject( response ):
   return True
 
 
-def _BuildUri( handler ):
+def _BuildUri( handler: str ) -> bytes:
   return ToBytes( urljoin( BaseRequest.server_location, handler ) )
 
 
-def MakeServerException( data ):
+def MakeServerException( data: Dict[str, Union[str, Dict[str, str]]] ) -> ServerError:
   if data[ 'exception' ][ 'TYPE' ] == UnknownExtraConf.__name__:
     return UnknownExtraConf( data[ 'exception' ][ 'extra_conf_file' ] )
 

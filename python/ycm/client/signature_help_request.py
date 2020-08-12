@@ -23,7 +23,7 @@ _logger = logging.getLogger( __name__ )
 
 
 class SigHelpAvailableByFileType( dict ):
-  def __missing__( self, filetype ):
+  def __missing__( self, filetype: str ) -> SignatureHelpAvailableRequest:
     request = SignatureHelpAvailableRequest( filetype )
     self[ filetype ] = request
     return request
@@ -70,13 +70,13 @@ class SignatureHelpRequest( BaseRequest ):
 
 
 class SignatureHelpAvailableRequest( BaseRequest ):
-  def __init__( self, filetype ):
+  def __init__( self, filetype: str ) -> None:
     super( SignatureHelpAvailableRequest, self ).__init__()
     self._response_future = None
     self.Start( filetype )
 
 
-  def Done( self ):
+  def Done( self ) -> bool:
     return bool( self._response_future ) and self._response_future.done()
 
 
@@ -93,7 +93,7 @@ class SignatureHelpAvailableRequest( BaseRequest ):
     return response[ 'available' ]
 
 
-  def Start( self, filetype ):
+  def Start( self, filetype: str ) -> None:
     self._response_future = self.GetDataFromHandlerAsync(
       'signature_help_available',
       payload = { 'subserver': filetype } )

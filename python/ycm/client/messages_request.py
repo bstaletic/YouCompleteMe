@@ -19,6 +19,9 @@ from ycm.client.base_request import BaseRequest, BuildRequestData
 from ycm.vimsupport import PostVimMessage
 
 import logging
+from typing import Dict, List, Optional, Union
+from ycm.tests.test_utils import VimBuffer
+from ycm.youcompleteme import YouCompleteMe
 
 _logger = logging.getLogger( __name__ )
 
@@ -27,13 +30,13 @@ TIMEOUT_SECONDS = 60
 
 
 class MessagesPoll( BaseRequest ):
-  def __init__( self, buff ):
+  def __init__( self, buff: VimBuffer ) -> None:
     super( MessagesPoll, self ).__init__()
     self._request_data = BuildRequestData( buff.number )
     self._response_future = None
 
 
-  def _SendRequest( self ):
+  def _SendRequest( self ) -> None:
     self._response_future = self.PostDataToHandlerAsync(
       self._request_data,
       'receive_messages',
@@ -41,7 +44,7 @@ class MessagesPoll( BaseRequest ):
     return
 
 
-  def Poll( self, diagnostics_handler ):
+  def Poll( self, diagnostics_handler: YouCompleteMe ) -> bool:
     """This should be called regularly to check for new messages in this buffer.
     Returns True if Poll should be called again in a while. Returns False when
     the completer or server indicated that further polling should not be done
@@ -70,7 +73,7 @@ class MessagesPoll( BaseRequest ):
     return False
 
 
-def _HandlePollResponse( response, diagnostics_handler ):
+def _HandlePollResponse( response: Union[str, int, List[Dict[str, str]], bool], diagnostics_handler: Optional[YouCompleteMe] ) -> bool:
   if isinstance( response, list ):
     for notification in response:
       if 'message' in notification:

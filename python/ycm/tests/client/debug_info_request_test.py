@@ -66,14 +66,14 @@ GENERIC_RESPONSE = {
 }
 
 
-def FormatDebugInfoResponse_NoResponse_test():
+def FormatDebugInfoResponse_NoResponse_test() -> None:
   assert_that(
     FormatDebugInfoResponse( None ),
     equal_to( 'Server errored, no debug info from server\n' )
   )
 
 
-def FormatDebugInfoResponse_NoExtraConf_test():
+def FormatDebugInfoResponse_NoExtraConf_test() -> None:
   response = deepcopy( GENERIC_RESPONSE )
   response[ 'extra_conf' ].update( {
     'is_loaded': False,
@@ -87,7 +87,7 @@ def FormatDebugInfoResponse_NoExtraConf_test():
   )
 
 
-def FormatDebugInfoResponse_ExtraConfFoundButNotLoaded_test():
+def FormatDebugInfoResponse_ExtraConfFoundButNotLoaded_test() -> None:
   response = deepcopy( GENERIC_RESPONSE )
   response[ 'extra_conf' ].update( {
     'is_loaded': False,
@@ -102,7 +102,7 @@ def FormatDebugInfoResponse_ExtraConfFoundButNotLoaded_test():
   )
 
 
-def FormatDebugInfoResponse_ExtraConfFoundAndLoaded_test():
+def FormatDebugInfoResponse_ExtraConfFoundAndLoaded_test() -> None:
   response = deepcopy( GENERIC_RESPONSE )
   response[ 'extra_conf' ].update( {
     'is_loaded': True,
@@ -117,7 +117,7 @@ def FormatDebugInfoResponse_ExtraConfFoundAndLoaded_test():
   )
 
 
-def FormatDebugInfoResponse_Completer_ServerRunningWithHost_test():
+def FormatDebugInfoResponse_Completer_ServerRunningWithHost_test() -> None:
   response = deepcopy( GENERIC_RESPONSE )
   assert_that(
     FormatDebugInfoResponse( response ),
@@ -135,7 +135,7 @@ def FormatDebugInfoResponse_Completer_ServerRunningWithHost_test():
   )
 
 
-def FormatDebugInfoResponse_Completer_ServerRunningWithoutHost_test():
+def FormatDebugInfoResponse_Completer_ServerRunningWithoutHost_test() -> None:
   response = deepcopy( GENERIC_RESPONSE )
   response[ 'completer' ][ 'servers' ][ 0 ].update( {
     'address': None,
@@ -157,7 +157,7 @@ def FormatDebugInfoResponse_Completer_ServerRunningWithoutHost_test():
   )
 
 
-def FormatDebugInfoResponse_Completer_ServerNotRunningWithNoLogfiles_test():
+def FormatDebugInfoResponse_Completer_ServerNotRunningWithNoLogfiles_test() -> None:
   response = deepcopy( GENERIC_RESPONSE )
   response[ 'completer' ][ 'servers' ][ 0 ].update( {
     'is_running': False,

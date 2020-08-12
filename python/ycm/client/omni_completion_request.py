@@ -16,23 +16,27 @@
 # along with YouCompleteMe.  If not, see <http://www.gnu.org/licenses/>.
 
 from ycm.client.completion_request import CompletionRequest
+from typing import Dict, List, Optional, Union
+from unittest.mock import MagicMock
+from ycm.omni_completer import OmniCompleter
+from ycmd.request_wrap import RequestWrap
 
 
 class OmniCompletionRequest( CompletionRequest ):
-  def __init__( self, omni_completer, request_data ):
+  def __init__( self, omni_completer: Union[MagicMock, str, OmniCompleter], request_data: Optional[Union[Dict[str, int], RequestWrap]] ) -> None:
     super( OmniCompletionRequest, self ).__init__( request_data )
     self._omni_completer = omni_completer
 
 
-  def Start( self ):
+  def Start( self ) -> None:
     self._results = self._omni_completer.ComputeCandidates( self.request_data )
 
 
-  def Done( self ):
+  def Done( self ) -> bool:
     return True
 
 
-  def Response( self ):
+  def Response( self ) -> Dict[str, Union[List[Dict[str, Union[int, str]]], int, List[Dict[str, str]]]]:
     return {
       'line': self.request_data[ 'line_num' ],
       'column': self.request_data[ 'column_num' ],
@@ -41,5 +45,5 @@ class OmniCompletionRequest( CompletionRequest ):
     }
 
 
-  def OnCompleteDone( self ):
+  def OnCompleteDone( self ) -> None:
     pass

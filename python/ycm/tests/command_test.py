@@ -22,10 +22,11 @@ from hamcrest import assert_that, contains_exactly, has_entries
 from unittest.mock import patch
 
 from ycm.tests import YouCompleteMeInstance
+from ycm.youcompleteme import YouCompleteMe
 
 
 @YouCompleteMeInstance( { 'g:ycm_extra_conf_vim_data': [ 'tempname()' ] } )
-def SendCommandRequest_ExtraConfVimData_Works_test( ycm ):
+def SendCommandRequest_ExtraConfVimData_Works_test( ycm: YouCompleteMe ) -> None:
   current_buffer = VimBuffer( 'buffer' )
   with MockVimBuffers( [ current_buffer ], [ current_buffer ] ):
     with patch( 'ycm.youcompleteme.SendCommandRequest' ) as send_request:
@@ -51,7 +52,7 @@ def SendCommandRequest_ExtraConfVimData_Works_test( ycm ):
 
 
 @YouCompleteMeInstance( { 'g:ycm_extra_conf_vim_data': [ 'undefined_value' ] } )
-def SendCommandRequest_ExtraConfData_UndefinedValue_test( ycm ):
+def SendCommandRequest_ExtraConfData_UndefinedValue_test( ycm: YouCompleteMe ) -> None:
   current_buffer = VimBuffer( 'buffer' )
   with MockVimBuffers( [ current_buffer ], [ current_buffer ] ):
     with patch( 'ycm.youcompleteme.SendCommandRequest' ) as send_request:
@@ -74,7 +75,7 @@ def SendCommandRequest_ExtraConfData_UndefinedValue_test( ycm ):
 
 
 @YouCompleteMeInstance()
-def SendCommandRequest_BuildRange_NoVisualMarks_test( ycm, *args ):
+def SendCommandRequest_BuildRange_NoVisualMarks_test( ycm: YouCompleteMe, *args) -> None:
   current_buffer = VimBuffer( 'buffer', contents = [ 'first line',
                                                      'second line' ] )
   with MockVimBuffers( [ current_buffer ], [ current_buffer ] ):
@@ -104,7 +105,7 @@ def SendCommandRequest_BuildRange_NoVisualMarks_test( ycm, *args ):
 
 
 @YouCompleteMeInstance()
-def SendCommandRequest_BuildRange_VisualMarks_test( ycm, *args ):
+def SendCommandRequest_BuildRange_VisualMarks_test( ycm: YouCompleteMe, *args) -> None:
   current_buffer = VimBuffer( 'buffer',
                               contents = [ 'first line',
                                            'second line' ],
@@ -137,7 +138,7 @@ def SendCommandRequest_BuildRange_VisualMarks_test( ycm, *args ):
 
 
 @YouCompleteMeInstance()
-def SendCommandRequest_IgnoreFileTypeOption_test( ycm, *args ):
+def SendCommandRequest_IgnoreFileTypeOption_test( ycm: YouCompleteMe, *args) -> None:
   current_buffer = VimBuffer( 'buffer' )
   with MockVimBuffers( [ current_buffer ], [ current_buffer ] ):
     expected_args = (

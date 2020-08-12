@@ -17,6 +17,7 @@
 
 import re
 from ycm import vimsupport
+from typing import Dict, List, Optional, Set
 
 SYNTAX_GROUP_REGEX = re.compile(
   r"""^
@@ -54,18 +55,18 @@ ROOT_GROUPS = {
 
 
 class SyntaxGroup:
-  def __init__( self, name, lines = None ):
+  def __init__( self, name: str, lines: Optional[List[str]] = None ) -> None:
     self.name     = name
     self.lines    = lines if lines else []
     self.children = []
 
 
-def SyntaxKeywordsForCurrentBuffer():
+def SyntaxKeywordsForCurrentBuffer() -> Set[str]:
   syntax_output = vimsupport.CaptureVimCommand( 'syntax list' )
   return _KeywordsFromSyntaxListOutput( syntax_output )
 
 
-def _KeywordsFromSyntaxListOutput( syntax_output ):
+def _KeywordsFromSyntaxListOutput( syntax_output: str ) -> Set[str]:
   group_name_to_group = _SyntaxGroupsFromOutput( syntax_output )
   _ConnectGroupChildren( group_name_to_group )
 
@@ -80,7 +81,7 @@ def _KeywordsFromSyntaxListOutput( syntax_output ):
   return set( keywords )
 
 
-def _SyntaxGroupsFromOutput( syntax_output ):
+def _SyntaxGroupsFromOutput( syntax_output: str ) -> Dict[str, SyntaxGroup]:
   group_name_to_group = _CreateInitialGroupMap()
   lines               = syntax_output.split( '\n' )
   looking_for_group   = True
@@ -111,7 +112,7 @@ def _SyntaxGroupsFromOutput( syntax_output ):
   return group_name_to_group
 
 
-def _CreateInitialGroupMap():
+def _CreateInitialGroupMap() -> Dict[str, SyntaxGroup]:
   def AddToGroupMap( name, parent ):
     new_group = SyntaxGroup( name )
     group_name_to_group[ name ] = new_group
@@ -152,7 +153,7 @@ def _CreateInitialGroupMap():
   return group_name_to_group
 
 
-def _ConnectGroupChildren( group_name_to_group ):
+def _ConnectGroupChildren( group_name_to_group: Dict[str, SyntaxGroup] ) -> None:
   def GetParentNames( group ):
     links_to     = 'links to '
     parent_names = []
@@ -172,7 +173,7 @@ def _ConnectGroupChildren( group_name_to_group ):
       parent_group.children.append( group )
 
 
-def _GetAllDescendentats( root_group ):
+def _GetAllDescendentats( root_group: SyntaxGroup ) -> List[SyntaxGroup]:
   descendants = []
   for child in root_group.children:
     descendants.append( child )
@@ -180,7 +181,7 @@ def _GetAllDescendentats( root_group ):
   return descendants
 
 
-def _ExtractKeywordsFromLine( line ):
+def _ExtractKeywordsFromLine( line: str ) -> List[str]:
   if line.startswith( 'links to ' ):
     return []
 
@@ -221,7 +222,7 @@ def _ExtractKeywordsFromLine( line ):
   return keywords
 
 
-def _ExtractKeywordsFromGroup( group ):
+def _ExtractKeywordsFromGroup( group: SyntaxGroup ) -> List[str]:
   keywords = []
   for line in group.lines:
     keywords.extend( _ExtractKeywordsFromLine( line ) )

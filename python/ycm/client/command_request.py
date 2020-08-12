@@ -18,9 +18,10 @@
 from ycm.client.base_request import BaseRequest, BuildRequestData
 from ycm import vimsupport
 from ycmd.utils import ToUnicode
+from typing import Dict, List, Optional, Union
 
 
-def _EnsureBackwardsCompatibility( arguments ):
+def _EnsureBackwardsCompatibility( arguments: List[str] ) -> List[str]:
   if arguments and arguments[ 0 ] == 'GoToDefinitionElseDeclaration':
     arguments[ 0 ] = 'GoTo'
   return arguments
@@ -28,9 +29,9 @@ def _EnsureBackwardsCompatibility( arguments ):
 
 class CommandRequest( BaseRequest ):
   def __init__( self,
-                arguments,
-                buffer_command = 'same-buffer',
-                extra_data = None ):
+                arguments: List[str],
+                buffer_command: str = 'same-buffer',
+                extra_data: None = None ) -> None:
     super( CommandRequest, self ).__init__()
     self._arguments = _EnsureBackwardsCompatibility( arguments )
     self._command = arguments and arguments[ 0 ]
@@ -56,7 +57,7 @@ class CommandRequest( BaseRequest ):
     return self._response
 
 
-  def RunPostCommandActionsIfNeeded( self, modifiers ):
+  def RunPostCommandActionsIfNeeded( self, modifiers: str ) -> None:
     if not self.Done() or self._response is None:
       return
 
@@ -112,7 +113,7 @@ class CommandRequest( BaseRequest ):
     return ""
 
 
-  def _HandleGotoResponse( self, modifiers ):
+  def _HandleGotoResponse( self, modifiers: str ) -> None:
     if isinstance( self._response, list ):
       vimsupport.SetQuickFixList(
         [ _BuildQfListItem( x ) for x in self._response ] )
@@ -125,7 +126,7 @@ class CommandRequest( BaseRequest ):
                                  self._buffer_command )
 
 
-  def _HandleFixitResponse( self ):
+  def _HandleFixitResponse( self ) -> None:
     if not len( self._response[ 'fixits' ] ):
       vimsupport.PostVimMessage( 'No fixits found for current line',
                                  warning = False )
@@ -164,15 +165,15 @@ class CommandRequest( BaseRequest ):
         vimsupport.PostVimMessage( str( e ) )
 
 
-  def _HandleBasicResponse( self ):
+  def _HandleBasicResponse( self ) -> None:
     vimsupport.PostVimMessage( self._response, warning = False )
 
 
-  def _HandleMessageResponse( self ):
+  def _HandleMessageResponse( self ) -> None:
     vimsupport.PostVimMessage( self._response[ 'message' ], warning = False )
 
 
-  def _HandleDetailedInfoResponse( self ):
+  def _HandleDetailedInfoResponse( self ) -> None:
     vimsupport.WriteToPreviewWindow( self._response[ 'detailed_info' ] )
 
 
@@ -194,7 +195,7 @@ def GetCommandResponse( arguments, extra_data = None ):
   return request.StringResponse()
 
 
-def _BuildQfListItem( goto_data_item ):
+def _BuildQfListItem( goto_data_item: Dict[str, Union[int, str]] ) -> Dict[str, Union[int, str]]:
   qf_item = {}
   if 'filepath' in goto_data_item:
     qf_item[ 'filename' ] = ToUnicode( goto_data_item[ 'filepath' ] )

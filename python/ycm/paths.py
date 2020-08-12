@@ -19,6 +19,7 @@ import os
 import sys
 import vim
 import re
+from typing import Optional, Union
 
 # Can't import these from setup.py because it makes nosetests go crazy.
 DIR_OF_CURRENT_SCRIPT = os.path.dirname( os.path.abspath( __file__ ) )
@@ -32,7 +33,7 @@ PYTHON_BINARY_REGEX = re.compile(
 # Not caching the result of this function; users shouldn't have to restart Vim
 # after running the install script or setting the
 # `g:ycm_server_python_interpreter` option.
-def PathToPythonInterpreter():
+def PathToPythonInterpreter() -> str:
   # Not calling the Python interpreter to check its version as it significantly
   # impacts startup time.
   from ycmd import utils
@@ -69,7 +70,7 @@ def PathToPythonInterpreter():
                       "to a Python interpreter path." )
 
 
-def _PathToPythonUsedDuringBuild():
+def _PathToPythonUsedDuringBuild() -> Optional[str]:
   from ycmd import utils
 
   try:
@@ -79,10 +80,10 @@ def _PathToPythonUsedDuringBuild():
     return None
 
 
-def _EndsWithPython( path ):
+def _EndsWithPython( path: Optional[str] ) -> Optional[Union[str, bool]]:
   """Check if given path ends with a python 3.6+ name."""
   return path and PYTHON_BINARY_REGEX.search( path ) is not None
 
 
-def PathToServerScript():
+def PathToServerScript() -> str:
   return os.path.join( DIR_OF_YCMD, 'ycmd' )

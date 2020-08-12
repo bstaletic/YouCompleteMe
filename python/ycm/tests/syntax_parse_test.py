@@ -25,13 +25,13 @@ from ycm import syntax_parse
 from ycmd.utils import ReadFile
 
 
-def ContentsOfTestFile( test_file ):
+def ContentsOfTestFile( test_file: str ) -> str:
   dir_of_script = os.path.dirname( os.path.abspath( __file__ ) )
   full_path_to_test_file = os.path.join( dir_of_script, 'testdata', test_file )
   return ReadFile( full_path_to_test_file )
 
 
-def KeywordsFromSyntaxListOutput_PythonSyntax_test():
+def KeywordsFromSyntaxListOutput_PythonSyntax_test() -> None:
   expected_keywords = (
     'bytearray', 'IndexError', 'all', 'help', 'vars', 'SyntaxError', 'global',
     'elif', 'unicode', 'sorted', 'memoryview', 'isinstance', 'except',
@@ -67,7 +67,7 @@ def KeywordsFromSyntaxListOutput_PythonSyntax_test():
                contains_inanyorder( *expected_keywords ) )
 
 
-def KeywordsFromSyntaxListOutput_CppSyntax_test():
+def KeywordsFromSyntaxListOutput_CppSyntax_test() -> None:
   expected_keywords = (
     'int_fast32_t', 'FILE', 'size_t', 'bitor', 'typedef', 'const', 'struct',
     'uint8_t', 'fpos_t', 'thread_local', 'unsigned', 'uint_least16_t', 'do',
@@ -97,7 +97,7 @@ def KeywordsFromSyntaxListOutput_CppSyntax_test():
                contains_inanyorder( *expected_keywords ) )
 
 
-def KeywordsFromSyntaxListOutput_JavaSyntax_test():
+def KeywordsFromSyntaxListOutput_JavaSyntax_test() -> None:
   expected_keywords = (
     'code', 'text', 'cols', 'datetime', 'disabled', 'shape', 'codetype', 'alt',
     'compact', 'style', 'valuetype', 'short', 'finally', 'continue', 'extends',
@@ -127,19 +127,19 @@ def KeywordsFromSyntaxListOutput_JavaSyntax_test():
                contains_inanyorder( *expected_keywords ) )
 
 
-def KeywordsFromSyntaxListOutput_PhpSyntax_ContainsFunctions_test():
+def KeywordsFromSyntaxListOutput_PhpSyntax_ContainsFunctions_test() -> None:
   assert_that( syntax_parse._KeywordsFromSyntaxListOutput(
                    ContentsOfTestFile( 'php_syntax' ) ),
                has_items( 'array_change_key_case' ) )
 
 
-def KeywordsFromSyntaxListOutput_PhpSyntax_ContainsPreProc_test():
+def KeywordsFromSyntaxListOutput_PhpSyntax_ContainsPreProc_test() -> None:
   assert_that( syntax_parse._KeywordsFromSyntaxListOutput(
                    ContentsOfTestFile( 'php_syntax' ) ),
                has_items( 'skip', 'function' ) )
 
 
-def KeywordsFromSyntaxListOutput_Basic_test():
+def KeywordsFromSyntaxListOutput_Basic_test() -> None:
   assert_that( syntax_parse._KeywordsFromSyntaxListOutput( """
 foogroup xxx foo bar
              zoo goo
@@ -147,7 +147,7 @@ foogroup xxx foo bar
               contains_inanyorder( 'foo', 'bar', 'zoo', 'goo' ) )
 
 
-def KeywordsFromSyntaxListOutput_Function_test():
+def KeywordsFromSyntaxListOutput_Function_test() -> None:
   assert_that( syntax_parse._KeywordsFromSyntaxListOutput( """
 foogroup xxx foo bar
              zoo goo
@@ -155,7 +155,7 @@ foogroup xxx foo bar
                contains_inanyorder( 'foo', 'bar', 'zoo', 'goo' ) )
 
 
-def KeywordsFromSyntaxListOutput_ContainedArgAllowed_test():
+def KeywordsFromSyntaxListOutput_ContainedArgAllowed_test() -> None:
   assert_that( syntax_parse._KeywordsFromSyntaxListOutput( """
 phpFunctions   xxx contained gzclose yaz_syntax html_entity_decode fbsql_read_blob png2wbmp mssql_init cpdf_set_title gztell fbsql_insert_id empty cpdf_restore mysql_field_type closelog swftext ldap_search curl_errno gmp_div_r mssql_data_seek getmyinode printer_draw_pie mcve_initconn ncurses_getmaxyx defined
                    contained replace_child has_attributes specified insertdocument assign node_name hwstat addshape get_attribute_node html_dump_mem userlist
@@ -163,7 +163,7 @@ phpFunctions   xxx contained gzclose yaz_syntax html_entity_decode fbsql_read_bl
               has_items( 'gzclose', 'userlist', 'ldap_search' ) )
 
 
-def KeywordsFromSyntaxListOutput_JunkIgnored_test():
+def KeywordsFromSyntaxListOutput_JunkIgnored_test() -> None:
   assert_that( syntax_parse._KeywordsFromSyntaxListOutput( """
 --- Syntax items ---
 foogroup xxx foo bar
@@ -174,7 +174,7 @@ NoSpell      cluster=NONE""" ),
                contains_inanyorder( 'foo', 'bar', 'zoo', 'goo' ) )
 
 
-def KeywordsFromSyntaxListOutput_MultipleStatementGroups_test():
+def KeywordsFromSyntaxListOutput_MultipleStatementGroups_test() -> None:
   assert_that( syntax_parse._KeywordsFromSyntaxListOutput( """
 foogroup xxx foo bar
              links to Statement
@@ -183,7 +183,7 @@ bargroup xxx zoo goo
                contains_inanyorder( 'foo', 'bar', 'zoo', 'goo' ) )
 
 
-def KeywordsFromSyntaxListOutput_StatementAndTypeGroups_test():
+def KeywordsFromSyntaxListOutput_StatementAndTypeGroups_test() -> None:
   assert_that( syntax_parse._KeywordsFromSyntaxListOutput( """
 foogroup xxx foo bar
              links to Statement
@@ -192,7 +192,7 @@ bargroup xxx zoo goo
                contains_inanyorder( 'foo', 'bar', 'zoo', 'goo' ) )
 
 
-def KeywordsFromSyntaxListOutput_StatementHierarchy_test():
+def KeywordsFromSyntaxListOutput_StatementHierarchy_test() -> None:
   assert_that( syntax_parse._KeywordsFromSyntaxListOutput( """
 baa xxx foo bar
         links to Foo
@@ -203,7 +203,7 @@ Bar xxx qux moo
                contains_inanyorder( 'foo', 'bar', 'zoo', 'goo', 'qux', 'moo' ) )
 
 
-def KeywordsFromSyntaxListOutput_TypeHierarchy_test():
+def KeywordsFromSyntaxListOutput_TypeHierarchy_test() -> None:
   assert_that( syntax_parse._KeywordsFromSyntaxListOutput( """
 baa xxx foo bar
         links to Foo
@@ -214,7 +214,7 @@ Bar xxx qux moo
               contains_inanyorder( 'foo', 'bar', 'zoo', 'goo', 'qux', 'moo' ) )
 
 
-def KeywordsFromSyntaxListOutput_StatementAndTypeHierarchy_test():
+def KeywordsFromSyntaxListOutput_StatementAndTypeHierarchy_test() -> None:
   assert_that( syntax_parse._KeywordsFromSyntaxListOutput( """
 tBaa xxx foo bar
          links to tFoo
@@ -232,7 +232,7 @@ sBar xxx qux nc
                                    'na', 'nb', 'nc' ) )
 
 
-def SyntaxGroupsFromOutput_Basic_test():
+def SyntaxGroupsFromOutput_Basic_test() -> None:
   assert_that( syntax_parse._SyntaxGroupsFromOutput( """
 foogroup xxx foo bar
              zoo goo
@@ -240,7 +240,7 @@ foogroup xxx foo bar
                has_item( 'foogroup' ) )
 
 
-def ExtractKeywordsFromGroup_Basic_test():
+def ExtractKeywordsFromGroup_Basic_test() -> None:
   assert_that( syntax_parse._ExtractKeywordsFromGroup(
                  syntax_parse.SyntaxGroup( '', [
                    'foo bar',
@@ -249,7 +249,7 @@ def ExtractKeywordsFromGroup_Basic_test():
                contains_inanyorder( 'foo', 'bar', 'zoo', 'goo' ) )
 
 
-def ExtractKeywordsFromGroup_Commas_test():
+def ExtractKeywordsFromGroup_Commas_test() -> None:
   assert_that( syntax_parse._ExtractKeywordsFromGroup(
                  syntax_parse.SyntaxGroup( '', [
                    'foo, bar,',
@@ -258,7 +258,7 @@ def ExtractKeywordsFromGroup_Commas_test():
                contains_inanyorder( 'foo', 'bar', 'zoo', 'goo' ) )
 
 
-def ExtractKeywordsFromGroup_WithLinksTo_test():
+def ExtractKeywordsFromGroup_WithLinksTo_test() -> None:
   assert_that( syntax_parse._ExtractKeywordsFromGroup(
                  syntax_parse.SyntaxGroup( '', [
                    'foo bar',
@@ -268,7 +268,7 @@ def ExtractKeywordsFromGroup_WithLinksTo_test():
                contains_inanyorder( 'foo', 'bar', 'zoo', 'goo' ) )
 
 
-def ExtractKeywordsFromGroup_KeywordStarts_test():
+def ExtractKeywordsFromGroup_KeywordStarts_test() -> None:
   assert_that( syntax_parse._ExtractKeywordsFromGroup(
                  syntax_parse.SyntaxGroup( '', [
                    'foo bar',
@@ -278,7 +278,7 @@ def ExtractKeywordsFromGroup_KeywordStarts_test():
                contains_inanyorder( 'foo', 'bar', 'boo', 'baa', 'zoo', 'goo' ) )
 
 
-def ExtractKeywordsFromGroup_KeywordMiddle_test():
+def ExtractKeywordsFromGroup_KeywordMiddle_test() -> None:
   assert_that( syntax_parse._ExtractKeywordsFromGroup(
                  syntax_parse.SyntaxGroup( '', [
                    'foo contained bar',
@@ -287,7 +287,7 @@ def ExtractKeywordsFromGroup_KeywordMiddle_test():
                contains_inanyorder( 'foo', 'contained', 'bar', 'zoo', 'goo' ) )
 
 
-def ExtractKeywordsFromGroup_KeywordAssign_test():
+def ExtractKeywordsFromGroup_KeywordAssign_test() -> None:
   assert_that( syntax_parse._ExtractKeywordsFromGroup(
                  syntax_parse.SyntaxGroup( '', [
                    'nextgroup=zoo skipwhite foo bar',
@@ -296,7 +296,7 @@ def ExtractKeywordsFromGroup_KeywordAssign_test():
                contains_inanyorder( 'foo', 'bar', 'zoo', 'goo' ) )
 
 
-def ExtractKeywordsFromGroup_KeywordAssignAndMiddle_test():
+def ExtractKeywordsFromGroup_KeywordAssignAndMiddle_test() -> None:
   assert_that( syntax_parse._ExtractKeywordsFromGroup(
                  syntax_parse.SyntaxGroup( '', [
                    'nextgroup=zoo foo skipnl bar',
@@ -305,7 +305,7 @@ def ExtractKeywordsFromGroup_KeywordAssignAndMiddle_test():
                contains_inanyorder( 'foo', 'skipnl', 'bar', 'zoo', 'goo' ) )
 
 
-def ExtractKeywordsFromGroup_KeywordWithoutNextgroup_test():
+def ExtractKeywordsFromGroup_KeywordWithoutNextgroup_test() -> None:
   assert_that( syntax_parse._ExtractKeywordsFromGroup(
                  syntax_parse.SyntaxGroup( '', [
                    'skipempty foo bar',
@@ -314,7 +314,7 @@ def ExtractKeywordsFromGroup_KeywordWithoutNextgroup_test():
                contains_inanyorder( 'skipempty', 'foo', 'bar', 'zoo', 'goo' ) )
 
 
-def ExtractKeywordsFromGroup_ContainedSyntaxArgAllowed_test():
+def ExtractKeywordsFromGroup_ContainedSyntaxArgAllowed_test() -> None:
   assert_that( syntax_parse._ExtractKeywordsFromGroup(
                  syntax_parse.SyntaxGroup( '', [
                    'contained foo zoq',

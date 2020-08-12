@@ -32,17 +32,19 @@ from ycmd.responses import ( BuildDiagnosticData, Diagnostic, Location, Range,
 from hamcrest import ( assert_that, contains_exactly, empty, equal_to,
                        has_entries, has_entry, has_item, has_items, has_key,
                        is_not )
-from unittest.mock import call, MagicMock, patch
+from unittest.mock import _Call, call, MagicMock, patch
+from typing import Callable, Iterator, Optional, Union
+from ycm.youcompleteme import YouCompleteMe
 
 
-def PresentDialog_Confirm_Call( message ):
+def PresentDialog_Confirm_Call( message: str ) -> _Call:
   """Return a mock.call object for a call to vimsupport.PresentDialog, as called
   why vimsupport.Confirm with the supplied confirmation message"""
   return call( message, [ 'Ok', 'Cancel' ] )
 
 
 @contextlib.contextmanager
-def MockArbitraryBuffer( filetype ):
+def MockArbitraryBuffer( filetype: str ) -> Iterator[None]:
   """Used via the with statement, set up a single buffer with an arbitrary name
   and no contents. Its filetype is set to the supplied filetype."""
 
@@ -55,7 +57,7 @@ def MockArbitraryBuffer( filetype ):
 
 
 @contextlib.contextmanager
-def MockEventNotification( response_method, native_filetype_completer = True ):
+def MockEventNotification( response_method: Optional[Union[MagicMock, Callable]], native_filetype_completer: bool = True ) -> Iterator[None]:
   """Mock out the EventNotification client request object, replacing the
   Response handler's JsonFromFuture with the supplied |response_method|.
   Additionally mock out YouCompleteMe's FiletypeCompleterExistsForFiletype
@@ -131,7 +133,7 @@ def EventNotification_FileReadyToParse_NonDiagnostic_Error_test(
 
 @YouCompleteMeInstance()
 def EventNotification_FileReadyToParse_NonDiagnostic_Error_NonNative_test(
-  ycm ):
+  ycm: YouCompleteMe ) -> None:
 
   test_utils.VIM_MATCHES = []
   test_utils.VIM_SIGNS = []
@@ -147,7 +149,7 @@ def EventNotification_FileReadyToParse_NonDiagnostic_Error_NonNative_test(
 
 @YouCompleteMeInstance()
 def EventNotification_FileReadyToParse_NonDiagnostic_ConfirmExtraConf_test(
-    ycm ):
+    ycm: YouCompleteMe ) -> None:
 
   # This test validates the behaviour of YouCompleteMe.HandleFileParseRequest
   # in combination with YouCompleteMe.OnFileReadyToParse when the completer
@@ -254,7 +256,7 @@ def EventNotification_FileReadyToParse_NonDiagnostic_ConfirmExtraConf_test(
 
 
 @YouCompleteMeInstance()
-def EventNotification_FileReadyToParse_Diagnostic_Error_Native_test( ycm ):
+def EventNotification_FileReadyToParse_Diagnostic_Error_Native_test( ycm: YouCompleteMe ) -> None:
   test_utils.VIM_SIGNS = []
 
   _Check_FileReadyToParse_Diagnostic_Error( ycm )
@@ -262,7 +264,7 @@ def EventNotification_FileReadyToParse_Diagnostic_Error_Native_test( ycm ):
   _Check_FileReadyToParse_Diagnostic_Clean( ycm )
 
 
-def _Check_FileReadyToParse_Diagnostic_Error( ycm ):
+def _Check_FileReadyToParse_Diagnostic_Error( ycm: YouCompleteMe ) -> None:
   # Tests Vim sign placement and error/warning count python API
   # when one error is returned.
   def DiagnosticResponse( *args ):
@@ -316,7 +318,7 @@ def _Check_FileReadyToParse_Diagnostic_Error( ycm ):
       assert_that( not ycm.ShouldResendFileParseRequest() )
 
 
-def _Check_FileReadyToParse_Diagnostic_Warning( ycm ):
+def _Check_FileReadyToParse_Diagnostic_Warning( ycm: YouCompleteMe ) -> None:
   # Tests Vim sign placement/unplacement and error/warning count python API
   # when one warning is returned.
   # Should be called after _Check_FileReadyToParse_Diagnostic_Error
@@ -356,7 +358,7 @@ def _Check_FileReadyToParse_Diagnostic_Warning( ycm ):
       assert_that( not ycm.ShouldResendFileParseRequest() )
 
 
-def _Check_FileReadyToParse_Diagnostic_Clean( ycm ):
+def _Check_FileReadyToParse_Diagnostic_Clean( ycm: YouCompleteMe ) -> None:
   # Tests Vim sign unplacement and error/warning count python API
   # when there are no errors/warnings left.
   # Should be called after _Check_FileReadyToParse_Diagnostic_Warning
@@ -376,7 +378,7 @@ def _Check_FileReadyToParse_Diagnostic_Clean( ycm ):
 @patch( 'ycm.youcompleteme.YouCompleteMe._AddUltiSnipsDataIfNeeded' )
 @YouCompleteMeInstance( { 'g:ycm_collect_identifiers_from_tags_files': 1 } )
 def EventNotification_FileReadyToParse_TagFiles_UnicodeWorkingDirectory_test(
-    add_ultisnips_data_if_needed, ycm ):
+    add_ultisnips_data_if_needed: MagicMock, ycm: YouCompleteMe ) -> None:
   unicode_dir = PathToTestFile( 'uni¢od€' )
   current_buffer_file = PathToTestFile( 'uni¢𐍈d€', 'current_buffer' )
   current_buffer = VimBuffer( name = current_buffer_file,
@@ -414,7 +416,7 @@ def EventNotification_FileReadyToParse_TagFiles_UnicodeWorkingDirectory_test(
 @patch( 'ycm.youcompleteme.YouCompleteMe._AddUltiSnipsDataIfNeeded' )
 @YouCompleteMeInstance()
 def EventNotification_BufferVisit_BuildRequestForCurrentAndUnsavedBuffers_test(
-    add_ultisnips_data_if_needed, ycm ):
+    add_ultisnips_data_if_needed: MagicMock, ycm: YouCompleteMe ) -> None:
 
   current_buffer_file = os.path.realpath( 'current_buffer' )
   current_buffer = VimBuffer( name = current_buffer_file,
@@ -470,7 +472,7 @@ def EventNotification_BufferVisit_BuildRequestForCurrentAndUnsavedBuffers_test(
 
 @YouCompleteMeInstance()
 def EventNotification_BufferUnload_BuildRequestForDeletedAndUnsavedBuffers_test(
-    ycm ):
+    ycm: YouCompleteMe ) -> None:
   current_buffer_file = os.path.realpath( 'current_βuffer' )
   current_buffer = VimBuffer( name = current_buffer_file,
                               number = 1,
@@ -521,7 +523,7 @@ fooGroup xxx foo bar
              links to Statement""" )
 @YouCompleteMeInstance( { 'g:ycm_seed_identifiers_with_syntax': 1 } )
 def EventNotification_FileReadyToParse_SyntaxKeywords_SeedWithCache_test(
-    capture_vim_command, ycm ):
+    capture_vim_command: MagicMock, ycm: YouCompleteMe ) -> None:
 
   current_buffer = VimBuffer( name = 'current_buffer',
                               filetype = 'some_filetype' )
@@ -556,7 +558,7 @@ fooGroup xxx foo bar
              links to Statement""" )
 @YouCompleteMeInstance( { 'g:ycm_seed_identifiers_with_syntax': 1 } )
 def EventNotification_FileReadyToParse_SyntaxKeywords_ClearCacheIfRestart_test(
-    capture_vim_command, ycm ):
+    capture_vim_command: MagicMock, ycm: YouCompleteMe ) -> None:
 
   current_buffer = VimBuffer( name = 'current_buffer',
                               filetype = 'some_filetype' )

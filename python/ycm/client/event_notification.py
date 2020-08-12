@@ -16,10 +16,11 @@
 # along with YouCompleteMe.  If not, see <http://www.gnu.org/licenses/>.
 
 from ycm.client.base_request import BaseRequest, BuildRequestData
+from typing import Dict, List, Optional, Union
 
 
 class EventNotification( BaseRequest ):
-  def __init__( self, event_name, buffer_number = None, extra_data = None ):
+  def __init__( self, event_name: str, buffer_number: Optional[int] = None, extra_data: Optional[Dict[str, List[str]]] = None ) -> None:
     super( EventNotification, self ).__init__()
     self._event_name = event_name
     self._buffer_number = buffer_number
@@ -28,7 +29,7 @@ class EventNotification( BaseRequest ):
     self._cached_response = None
 
 
-  def Start( self ):
+  def Start( self ) -> None:
     request_data = BuildRequestData( self._buffer_number )
     if self._extra_data:
       request_data.update( self._extra_data )
@@ -42,7 +43,7 @@ class EventNotification( BaseRequest ):
     return bool( self._response_future ) and self._response_future.done()
 
 
-  def Response( self ):
+  def Response( self ) -> List[Dict[str, Union[Dict[str, Union[int, str]], Dict[str, Dict[str, Union[int, str]]], str, bool]]]:
     if self._cached_response:
       return self._cached_response
 
@@ -55,8 +56,8 @@ class EventNotification( BaseRequest ):
     return self._cached_response if self._cached_response else []
 
 
-def SendEventNotificationAsync( event_name,
-                                buffer_number = None,
-                                extra_data = None ):
+def SendEventNotificationAsync( event_name: str,
+                                buffer_number: Optional[int] = None,
+                                extra_data: None = None ) -> None:
   event = EventNotification( event_name, buffer_number, extra_data )
   event.Start()

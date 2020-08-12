@@ -20,6 +20,7 @@ import json
 from ycm import vimsupport
 from ycmd import utils
 from ycm.vimsupport import memoize, GetIntValue
+from typing import Any, Dict, List, Optional, Union
 
 
 class SignatureHelpState:
@@ -27,14 +28,14 @@ class SignatureHelpState:
   INACTIVE = 'INACTIVE'
 
   def __init__( self,
-                popup_win_id = None,
-                state = INACTIVE ):
+                popup_win_id: None = None,
+                state: str = INACTIVE ) -> None:
     self.popup_win_id = popup_win_id
     self.state = state
     self.anchor = None
 
 
-def _MakeSignatureHelpBuffer( signature_info ):
+def _MakeSignatureHelpBuffer( signature_info: Dict[str, Union[List[Any], int]] ) -> List[Any]:
   active_parameter = int( signature_info.get( 'activeParameter', 0 ) )
 
   lines = []

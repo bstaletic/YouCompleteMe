@@ -20,32 +20,33 @@ MockVimModule()
 
 from hamcrest import assert_that, equal_to
 from ycm.diagnostic_filter import DiagnosticFilter
+from typing import Dict, List, Union
 
 
-def _assert_accept_equals( filter, text_or_obj, expected ):
+def _assert_accept_equals( filter: DiagnosticFilter, text_or_obj: Union[str, Dict[str, str]], expected: bool ) -> None:
   if not isinstance( text_or_obj, dict ):
     text_or_obj = { 'text': text_or_obj }
 
   assert_that( filter.IsAllowed( text_or_obj ), equal_to( expected ) )
 
 
-def _assert_accepts( filter, text ):
+def _assert_accepts( filter: DiagnosticFilter, text: Union[str, Dict[str, str]] ) -> None:
   _assert_accept_equals( filter, text, True )
 
 
-def _assert_rejects( filter, text ):
+def _assert_rejects( filter: DiagnosticFilter, text: Union[str, Dict[str, str]] ) -> None:
   _assert_accept_equals( filter, text, False )
 
 
-def _JavaFilter( config ):
+def _JavaFilter( config: Dict[str, Union[List[str], str]] ) -> Dict[str, Union[Dict[str, Dict[str, str]], Dict[str, Dict[str, List[str]]]]]:
   return { 'filter_diagnostics' : { 'java': config } }
 
 
-def _CreateFilterForTypes( opts, types ):
+def _CreateFilterForTypes( opts: Dict[str, Union[Dict[str, Dict[str, str]], Dict[str, Dict[str, List[str]]]]], types: List[str] ) -> DiagnosticFilter:
   return DiagnosticFilter.CreateFromOptions( opts ).SubsetForTypes( types )
 
 
-def RegexFilter_test():
+def RegexFilter_test() -> None:
   opts = _JavaFilter( { 'regex' : 'taco' } )
   f = _CreateFilterForTypes( opts, [ 'java' ] )
 
@@ -53,7 +54,7 @@ def RegexFilter_test():
   _assert_accepts( f, 'This is a Burrito' )
 
 
-def RegexSingleList_test():
+def RegexSingleList_test() -> None:
   opts = _JavaFilter( { 'regex' : [ 'taco' ] } )
   f = _CreateFilterForTypes( opts, [ 'java' ] )
 
@@ -61,7 +62,7 @@ def RegexSingleList_test():
   _assert_accepts( f, 'This is a Burrito' )
 
 
-def RegexMultiList_test():
+def RegexMultiList_test() -> None:
   opts = _JavaFilter( { 'regex' : [ 'taco', 'burrito' ] } )
   f = _CreateFilterForTypes( opts, [ 'java' ] )
 
@@ -69,7 +70,7 @@ def RegexMultiList_test():
   _assert_rejects( f, 'This is a Burrito' )
 
 
-def RegexNotFiltered_test():
+def RegexNotFiltered_test() -> None:
   opts = _JavaFilter( { 'regex' : 'taco' } )
   f = _CreateFilterForTypes( opts, [ 'cs' ] )
 
@@ -77,7 +78,7 @@ def RegexNotFiltered_test():
   _assert_accepts( f, 'This is a Burrito' )
 
 
-def LevelWarnings_test():
+def LevelWarnings_test() -> None:
   opts = _JavaFilter( { 'level' : 'warning' } )
   f = _CreateFilterForTypes( opts, [ 'java' ] )
 
@@ -87,7 +88,7 @@ def LevelWarnings_test():
                         'kind' : 'ERROR' } )
 
 
-def LevelErrors_test():
+def LevelErrors_test() -> None:
   opts = _JavaFilter( { 'level' : 'error' } )
   f = _CreateFilterForTypes( opts, [ 'java' ] )
 
@@ -97,7 +98,7 @@ def LevelErrors_test():
                         'kind' : 'ERROR' } )
 
 
-def MultipleFilterTypesTypeTest_test():
+def MultipleFilterTypesTypeTest_test() -> None:
 
   opts = _JavaFilter( { 'regex' : '.*taco.*',
                         'level' : 'warning' } )
@@ -111,7 +112,7 @@ def MultipleFilterTypesTypeTest_test():
                         'kind' : 'ERROR' } )
 
 
-def MergeMultipleFiletypes_test():
+def MergeMultipleFiletypes_test() -> None:
 
   opts = { 'filter_diagnostics' : {
     'java' : { 'regex' : '.*taco.*' },
@@ -124,7 +125,7 @@ def MergeMultipleFiletypes_test():
   _assert_accepts( f, 'This is some Nachos' )
 
 
-def CommaSeparatedFiletypes_test():
+def CommaSeparatedFiletypes_test() -> None:
 
   opts = { 'filter_diagnostics' : {
     'java,c,cs' : { 'regex' : '.*taco.*' } } }
