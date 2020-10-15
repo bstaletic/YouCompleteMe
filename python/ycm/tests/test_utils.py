@@ -45,13 +45,11 @@ OMNIFUNC_REGEX_FORMAT = (
 FNAMEESCAPE_REGEX = re.compile( '^fnameescape\\(\'(?P<filepath>.+)\'\\)$' )
 STRDISPLAYWIDTH_REGEX = re.compile(
   '^strdisplaywidth\\( ?\'(?P<text>.+)\' ?\\)$' )
-SIGN_LIST_REGEX = re.compile(
-  '^silent! sign place buffer=(?P<bufnr>\\d+)$' )
 SIGN_PLACE_REGEX = re.compile(
-  '^sign place (?P<id>\\d+) name=(?P<name>\\w+) line=(?P<line>\\d+) '
-  'buffer=(?P<bufnr>\\d+)$' )
+  '^sign_place\\( 0, "YouCompleteMe", "(?P<name>\\w+)", "(?P<bufname>.+)",'
+  ' { "lnum": (?P<line>\\d+) } \\)$' )
 SIGN_UNPLACE_REGEX = re.compile(
-  '^sign unplace (?P<id>\\d+) buffer=(?P<bufnr>\\d+)$' )
+  '^sign_unplace\\( "YouCompleteMe", { "buffer": (?P<bufname>\\d+) } \\)$' )
 REDIR_START_REGEX = re.compile( '^redir => (?P<variable>[\\w:]+)$' )
 REDIR_END_REGEX = re.compile( '^redir END$' )
 EXISTS_REGEX = re.compile( '^exists\\( \'(?P<option>[\\w:]+)\' \\)$' )
@@ -260,7 +258,7 @@ def _MockVimVersionEval( value ):
   return None
 
 
-def _MockVimEval( value ):
+def _MockVimEval( value ): # noqa
   result = _MockVimOptionsEval( value )
   if result is not None:
     return result
@@ -296,7 +294,22 @@ def _MockVimEval( value ):
   if match:
     return len( match.group( 'text' ) )
 
-  raise VimError( f'Unexpected evaluation: { value }' )
+  match = SIGN_UNPLACE_REGEX.search( value )
+  if match:
+    bufname = int( match.group( 'bufname' ) )
+    for sign in VIM_SIGNS:
+      if sign.bufname == bufname:
+        VIM_SIGNS.remove( sign )
+    return True
+
+  match = SIGN_PLACE_REGEX.search( value )
+  if match:
+    VIM_SIGNS.append( VimSign( int( match.group( 'line' ) ),
+                               match.group( 'name' ),
+                               match.group( 'bufname' ) ) )
+    return True
+
+  raise VimError( f'Unexpected evaluation: { repr( value ) }' )
 
 
 def _MockWipeoutBuffer( buffer_number ):
@@ -305,42 +318,6 @@ def _MockWipeoutBuffer( buffer_number ):
   for index, buffer in enumerate( buffers ):
     if buffer.number == buffer_number:
       return buffers.pop( index )
-
-
-def _MockSignCommand( command ):
-  match = SIGN_LIST_REGEX.search( command )
-  if match and REDIR[ 'status' ]:
-    bufnr = int( match.group( 'bufnr' ) )
-    REDIR[ 'output' ] = ( '--- Signs ---\n'
-                          'Signs for foo:\n' )
-    for sign in VIM_SIGNS:
-      if sign.bufnr == bufnr:
-        if VIM_VERSION >= Version( 8, 1, 614 ):
-          # 10 is the default priority.
-          line_output = '    line={}  id={}  name={} priority=10'
-        else:
-          line_output = '    line={}  id={}  name={}'
-        REDIR[ 'output' ] += line_output.format( sign.line, sign.id, sign.name )
-    return True
-
-  match = SIGN_PLACE_REGEX.search( command )
-  if match:
-    VIM_SIGNS.append( VimSign( int( match.group( 'id' ) ),
-                               int( match.group( 'line' ) ),
-                               match.group( 'name' ),
-                               int( match.group( 'bufnr' ) ) ) )
-    return True
-
-  match = SIGN_UNPLACE_REGEX.search( command )
-  if match:
-    sign_id = int( match.group( 'id' ) )
-    bufnr = int( match.group( 'bufnr' ) )
-    for sign in VIM_SIGNS:
-      if sign.id == sign_id and sign.bufnr == bufnr:
-        VIM_SIGNS.remove( sign )
-        return True
-
-  return False
 
 
 def _MockVimCommand( command ):
@@ -361,10 +338,6 @@ def _MockVimCommand( command ):
 
   if command == 'unlet ' + REDIR[ 'variable' ]:
     REDIR[ 'variable' ] = ''
-    return
-
-  result = _MockSignCommand( command )
-  if result:
     return
 
   match = LET_REGEX.search( command )
@@ -567,23 +540,21 @@ class VimMatch:
 
 class VimSign:
 
-  def __init__( self, sign_id, line, name, bufnr ):
-    self.id = sign_id
+  def __init__( self, line, name, bufname ):
     self.line = line
     self.name = name
-    self.bufnr = bufnr
+    self.bufname = bufname
 
 
   def __eq__( self, other ):
-    return ( self.id == other.id and
-             self.line == other.line and
+    return ( self.line == other.line and
              self.name == other.name and
-             self.bufnr == other.bufnr )
+             self.bufname == other.bufname )
 
 
   def __repr__( self ):
-    return ( f"VimSign( id = { self.id }, line = { self.line }, "
-                      f"name = '{ self.name }', bufnr = { self.bufnr } )" )
+    return ( f"VimSign( line = { self.line }, "
+                      f"name = '{ self.name }', bufname = { self.bufname } )" )
 
 
   def __getitem__( self, key ):

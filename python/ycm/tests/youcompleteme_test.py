@@ -33,8 +33,7 @@ from unittest.mock import call, MagicMock, patch
 
 from ycm import vimsupport
 from ycm.paths import _PathToPythonUsedDuringBuild
-from ycm.vimsupport import ( SetVariableValue,
-                             SIGN_BUFFER_ID_INITIAL_VALUE )
+from ycm.vimsupport import SetVariableValue
 from ycm.tests import ( StopServer,
                         test_utils,
                         UserOptions,
@@ -598,7 +597,6 @@ def YouCompleteMe_UpdateDiagnosticInterface( ycm, post_vim_message, *args ):
                               number = 5 )
 
   test_utils.VIM_SIGNS = []
-  vimsupport.SIGN_ID_FOR_BUFFER.clear()
 
   with MockVimBuffers( [ current_buffer ], [ current_buffer ], ( 3, 1 ) ):
     with patch( 'ycm.client.event_notification.EventNotification.Response',
@@ -624,10 +622,13 @@ def YouCompleteMe_UpdateDiagnosticInterface( ycm, post_vim_message, *args ):
     )
 
     # Only the error sign is placed.
+    print('asd')
+    print( test_utils.VIM_SIGNS)
+    print('asd')
     assert_that(
       test_utils.VIM_SIGNS,
       contains_exactly(
-        VimSign( SIGN_BUFFER_ID_INITIAL_VALUE, 3, 'YcmError', 5 )
+        VimSign( 3, 'YcmError', vimsupport.GetBufferFilepath( current_buffer ) )
       )
     )
 
@@ -669,7 +670,8 @@ def YouCompleteMe_UpdateDiagnosticInterface( ycm, post_vim_message, *args ):
     assert_that(
       test_utils.VIM_SIGNS,
       contains_exactly(
-        VimSign( SIGN_BUFFER_ID_INITIAL_VALUE + 1, 3, 'YcmWarning', 5 )
+        VimSign(
+            3, 'YcmWarning', vimsupport.GetBufferFilepath( current_buffer ) )
       )
     )
 

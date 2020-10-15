@@ -25,7 +25,6 @@ import os
 
 from ycm.tests import ( PathToTestFile, test_utils, YouCompleteMeInstance,
                         WaitUntilReady )
-from ycm.vimsupport import SIGN_BUFFER_ID_INITIAL_VALUE
 from ycmd.responses import ( BuildDiagnosticData, Diagnostic, Location, Range,
                              UnknownExtraConf, ServerError )
 
@@ -280,7 +279,7 @@ def _Check_FileReadyToParse_Diagnostic_Error( ycm ):
       assert_that(
         test_utils.VIM_SIGNS,
         contains_exactly(
-          VimSign( SIGN_BUFFER_ID_INITIAL_VALUE, 1, 'YcmError', 1 )
+          VimSign( 1, 'YcmError', os.path.abspath( 'TEST_BUFFER' ) )
         )
       )
       assert_that( ycm.GetErrorCount(), equal_to( 1 ) )
@@ -292,7 +291,7 @@ def _Check_FileReadyToParse_Diagnostic_Error( ycm ):
       assert_that(
         test_utils.VIM_SIGNS,
         contains_exactly(
-          VimSign( SIGN_BUFFER_ID_INITIAL_VALUE, 1, 'YcmError', 1 )
+          VimSign( 1, 'YcmError', os.path.abspath( 'TEST_BUFFER' ) )
         )
       )
       assert_that( ycm.GetErrorCount(), equal_to( 1 ) )
@@ -307,7 +306,7 @@ def _Check_FileReadyToParse_Diagnostic_Error( ycm ):
       assert_that(
         test_utils.VIM_SIGNS,
         contains_exactly(
-          VimSign( SIGN_BUFFER_ID_INITIAL_VALUE, 1, 'YcmError', 1 )
+          VimSign( 1, 'YcmError', os.path.abspath( 'TEST_BUFFER' ) )
         )
       )
       assert_that( ycm.GetErrorCount(), equal_to( 1 ) )
@@ -335,7 +334,7 @@ def _Check_FileReadyToParse_Diagnostic_Warning( ycm ):
       assert_that(
         test_utils.VIM_SIGNS,
         contains_exactly(
-          VimSign( SIGN_BUFFER_ID_INITIAL_VALUE + 2, 2, 'YcmWarning', 1 )
+          VimSign( 2, 'YcmWarning', 1 )
         )
       )
       assert_that( ycm.GetErrorCount(), equal_to( 0 ) )
@@ -347,7 +346,7 @@ def _Check_FileReadyToParse_Diagnostic_Warning( ycm ):
       assert_that(
         test_utils.VIM_SIGNS,
         contains_exactly(
-          VimSign( SIGN_BUFFER_ID_INITIAL_VALUE + 2, 2, 'YcmWarning', 1 )
+          VimSign( 2, 'YcmWarning', 1 )
         )
       )
       assert_that( ycm.GetErrorCount(), equal_to( 0 ) )
