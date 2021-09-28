@@ -16,8 +16,6 @@
 # along with YouCompleteMe.  If not, see <http://www.gnu.org/licenses/>.
 
 import os
-from ycm.tests.test_utils import MockVimModule
-MockVimModule()
 
 import contextlib
 import functools

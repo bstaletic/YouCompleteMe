@@ -79,17 +79,16 @@ class CompletionTest( TestCase ):
       return { 'completions': [], 'completion_start_column': 1 }
 
     with CurrentWorkingDirectory( unicode_dir ):
-      with MockVimBuffers( [ current_buffer ], [ current_buffer ] ):
-        with MockCompletionRequest( ServerResponse ):
-          ycm.SendCompletionRequest()
-          assert_that( ycm.CompletionRequestReady() )
-          assert_that(
-            ycm.GetCompletionResponse(),
-            has_entries( {
-              'completions': empty(),
-              'completion_start_column': 1
-            } )
-          )
+      with MockCompletionRequest( ServerResponse ):
+        ycm.SendCompletionRequest()
+        assert_that( ycm.CompletionRequestReady() )
+        assert_that(
+          ycm.GetCompletionResponse(),
+          has_entries( {
+            'completions': empty(),
+            'completion_start_column': 1
+          } )
+        )
 
 
   @YouCompleteMeInstance()

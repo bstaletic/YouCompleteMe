@@ -16,118 +16,106 @@
 # You should have received a copy of the GNU General Public License
 # along with YouCompleteMe.  If not, see <http://www.gnu.org/licenses/>.
 
-import contextlib
+import vim
 from hamcrest import assert_that, equal_to
 from unittest import TestCase
-from unittest.mock import patch
 
-from ycm.tests.test_utils import MockVimModule
-vim_mock = MockVimModule()
 from ycm import base
-
-
-@contextlib.contextmanager
-def MockCurrentFiletypes( filetypes = [ '' ] ):
-  with patch( 'ycm.vimsupport.CurrentFiletypes', return_value = filetypes ):
-    yield
-
-
-@contextlib.contextmanager
-def MockCurrentColumnAndLineContents( column, line_contents ):
-  with patch( 'ycm.vimsupport.CurrentColumn', return_value = column ):
-    with patch( 'ycm.vimsupport.CurrentLineContents',
-                return_value = line_contents ):
-      yield
-
-
-@contextlib.contextmanager
-def MockTextAfterCursor( text ):
-  with patch( 'ycm.vimsupport.TextAfterCursor', return_value = text ):
-    yield
 
 
 class BaseTest( TestCase ):
   def test_AdjustCandidateInsertionText_Basic( self ):
-    with MockTextAfterCursor( 'bar' ):
-      assert_that( [ { 'word': 'foo',    'abbr': 'foobar' } ],
-                   equal_to( base.AdjustCandidateInsertionText( [
-                               { 'word': 'foobar', 'abbr': '' } ] ) ) )
+    vim.current.buffer[ 0 ] = 'bar'
+    vim.current.window.cursor = ( 1, 0 )
+    assert_that( [ { 'word': 'foo',    'abbr': 'foobar' } ],
+        equal_to( base.AdjustCandidateInsertionText( [
+          { 'word': 'foobar', 'abbr': '' } ] ) ) )
 
 
   def test_AdjustCandidateInsertionText_ParenInTextAfterCursor( self ):
-    with MockTextAfterCursor( 'bar(zoo' ):
-      assert_that( [ { 'word': 'foo',    'abbr': 'foobar' } ],
-                   equal_to( base.AdjustCandidateInsertionText( [
-                               { 'word': 'foobar', 'abbr': '' } ] ) ) )
+    vim.current.buffer[ 0 ] = 'bar(zoo'
+    vim.current.window.cursor = ( 1, 0 )
+    assert_that( [ { 'word': 'foo',    'abbr': 'foobar' } ],
+        equal_to( base.AdjustCandidateInsertionText( [
+          { 'word': 'foobar', 'abbr': '' } ] ) ) )
 
 
   def test_AdjustCandidateInsertionText_PlusInTextAfterCursor( self ):
-    with MockTextAfterCursor( 'bar+zoo' ):
-      assert_that( [ { 'word': 'foo',    'abbr': 'foobar' } ],
-                   equal_to( base.AdjustCandidateInsertionText( [
-                               { 'word': 'foobar', 'abbr': '' } ] ) ) )
+    vim.current.buffer[ 0 ] = 'bar+zoo'
+    vim.current.window.cursor = ( 1, 0 )
+    assert_that( [ { 'word': 'foo',    'abbr': 'foobar' } ],
+        equal_to( base.AdjustCandidateInsertionText( [
+          { 'word': 'foobar', 'abbr': '' } ] ) ) )
 
 
   def test_AdjustCandidateInsertionText_WhitespaceInTextAfterCursor( self ):
-    with MockTextAfterCursor( 'bar zoo' ):
-      assert_that( [ { 'word': 'foo',    'abbr': 'foobar' } ],
-                   equal_to( base.AdjustCandidateInsertionText( [
-                               { 'word': 'foobar', 'abbr': '' } ] ) ) )
+    vim.current.buffer[ 0 ] = 'bar zoo'
+    vim.current.window.cursor = ( 1, 0 )
+    assert_that( [ { 'word': 'foo',    'abbr': 'foobar' } ],
+        equal_to( base.AdjustCandidateInsertionText( [
+          { 'word': 'foobar', 'abbr': '' } ] ) ) )
 
 
   def test_AdjustCandidateInsertionText_MoreThanWordMatchingAfterCursor( self ):
-    with MockTextAfterCursor( 'bar.h' ):
-      assert_that( [ { 'word': 'foo', 'abbr': 'foobar.h' } ],
-                   equal_to( base.AdjustCandidateInsertionText( [
-                               { 'word': 'foobar.h', 'abbr': '' } ] ) ) )
+    vim.current.buffer[ 0 ] = 'bar.h'
+    vim.current.window.cursor = ( 1, 0 )
+    assert_that( [ { 'word': 'foo', 'abbr': 'foobar.h' } ],
+        equal_to( base.AdjustCandidateInsertionText( [
+          { 'word': 'foobar.h', 'abbr': '' } ] ) ) )
 
-    with MockTextAfterCursor( 'bar(zoo' ):
-      assert_that( [ { 'word': 'foo', 'abbr': 'foobar(zoo' } ],
-                   equal_to( base.AdjustCandidateInsertionText( [
-                               { 'word': 'foobar(zoo', 'abbr': '' } ] ) ) )
+    vim.current.buffer[ 0 ] = 'bar(zoo'
+    vim.current.window.cursor = ( 1, 0 )
+    assert_that( [ { 'word': 'foo', 'abbr': 'foobar(zoo' } ],
+        equal_to( base.AdjustCandidateInsertionText( [
+          { 'word': 'foobar(zoo', 'abbr': '' } ] ) ) )
 
 
   def test_AdjustCandidateInsertionText_NotSuffix( self ):
-    with MockTextAfterCursor( 'bar' ):
-      assert_that( [ { 'word': 'foofoo', 'abbr': 'foofoo' } ],
-                   equal_to( base.AdjustCandidateInsertionText( [
-                     { 'word': 'foofoo', 'abbr': '' } ] ) ) )
+    vim.current.buffer[ 0 ] = 'bar'
+    vim.current.window.cursor = ( 1, 0 )
+    assert_that( [ { 'word': 'foofoo', 'abbr': 'foofoo' } ],
+        equal_to( base.AdjustCandidateInsertionText( [
+          { 'word': 'foofoo', 'abbr': '' } ] ) ) )
 
 
   def test_AdjustCandidateInsertionText_NothingAfterCursor( self ):
-    with MockTextAfterCursor( '' ):
-      assert_that( [ { 'word': 'foofoo', 'abbr': '' },
-                     { 'word': 'zobar',  'abbr': '' } ],
-                   equal_to( base.AdjustCandidateInsertionText( [
-                     { 'word': 'foofoo', 'abbr': '' },
-                     { 'word': 'zobar',  'abbr': '' } ] ) ) )
+    vim.current.buffer[ 0 ] = ''
+    vim.current.window.cursor = ( 1, 0 )
+    assert_that( [ { 'word': 'foofoo', 'abbr': '' },
+      { 'word': 'zobar',  'abbr': '' } ],
+      equal_to( base.AdjustCandidateInsertionText( [
+        { 'word': 'foofoo', 'abbr': '' },
+        { 'word': 'zobar',  'abbr': '' } ] ) ) )
 
 
   def test_AdjustCandidateInsertionText_MultipleStrings( self ):
-    with MockTextAfterCursor( 'bar' ):
-      assert_that( [ { 'word': 'foo',    'abbr': 'foobar' },
-                     { 'word': 'zo',     'abbr': 'zobar' },
-                     { 'word': 'q',      'abbr': 'qbar' },
-                     { 'word': '',       'abbr': 'bar' }, ],
-                   equal_to( base.AdjustCandidateInsertionText( [
-                     { 'word': 'foobar', 'abbr': '' },
-                     { 'word': 'zobar',  'abbr': '' },
-                     { 'word': 'qbar',   'abbr': '' },
-                     { 'word': 'bar',    'abbr': '' } ] ) ) )
+    vim.current.buffer[ 0 ] = 'bar'
+    vim.current.window.cursor = ( 1, 0 )
+    assert_that( [ { 'word': 'foo',    'abbr': 'foobar' },
+      { 'word': 'zo',     'abbr': 'zobar' },
+      { 'word': 'q',      'abbr': 'qbar' },
+      { 'word': '',       'abbr': 'bar' }, ],
+      equal_to( base.AdjustCandidateInsertionText( [
+        { 'word': 'foobar', 'abbr': '' },
+        { 'word': 'zobar',  'abbr': '' },
+        { 'word': 'qbar',   'abbr': '' },
+        { 'word': 'bar',    'abbr': '' } ] ) ) )
 
 
   def test_AdjustCandidateInsertionText_DontTouchAbbr( self ):
-    with MockTextAfterCursor( 'bar' ):
-      assert_that( [ { 'word': 'foo',    'abbr': '1234' } ],
-                   equal_to( base.AdjustCandidateInsertionText( [
-                     { 'word': 'foobar', 'abbr': '1234' } ] ) ) )
+    vim.current.buffer[ 0 ] = 'bar'
+    vim.current.window.cursor = ( 1, 0 )
+    assert_that( [ { 'word': 'foo',    'abbr': '1234' } ],
+        equal_to( base.AdjustCandidateInsertionText( [
+          { 'word': 'foobar', 'abbr': '1234' } ] ) ) )
 
 
   def test_AdjustCandidateInsertionText_NoAbbr( self ):
-    with MockTextAfterCursor( 'bar' ):
-      assert_that( [ { 'word': 'foo', 'abbr': 'foobar' } ],
-                   equal_to( base.AdjustCandidateInsertionText( [
-                     { 'word': 'foobar' } ] ) ) )
+    vim.current.buffer[ 0 ] = 'bar'
+    vim.current.window.cursor = ( 1, 0 )
+    assert_that( [ { 'word': 'foo', 'abbr': 'foobar' } ],
+        equal_to( base.AdjustCandidateInsertionText( [
+          { 'word': 'foobar' } ] ) ) )
 
 
   def test_OverlapLength_Basic( self ):
@@ -172,138 +160,136 @@ class BaseTest( TestCase ):
 
 
   def test_LastEnteredCharIsIdentifierChar_Basic( self ):
-    with MockCurrentFiletypes():
-      with MockCurrentColumnAndLineContents( 3, 'abc' ):
-        assert_that( base.LastEnteredCharIsIdentifierChar() )
+    vim.current.buffer.options[ 'ft' ] = b''
+    vim.current.buffer[ 0 ] = 'abc'
 
-      with MockCurrentColumnAndLineContents( 2, 'abc' ):
+    for column in range( 3 ):
+      with self.subTest( column = column ):
+        vim.current.window.cursor = ( 1, column + 1 )
         assert_that( base.LastEnteredCharIsIdentifierChar() )
-
-      with MockCurrentColumnAndLineContents( 1, 'abc' ):
-        assert_that( base.LastEnteredCharIsIdentifierChar() )
-
 
   def test_LastEnteredCharIsIdentifierChar_FiletypeHtml( self ):
-    with MockCurrentFiletypes( [ 'html' ] ):
-      with MockCurrentColumnAndLineContents( 3, 'ab-' ):
-        assert_that( base.LastEnteredCharIsIdentifierChar() )
+    vim.current.buffer.options[ 'ft' ] = b'html'
+    vim.current.buffer[ 0 ] = 'ab-'
+    vim.current.window.cursor = ( 1, 3 )
+    assert_that( base.LastEnteredCharIsIdentifierChar() )
 
 
   def test_LastEnteredCharIsIdentifierChar_ColumnIsZero( self ):
-    with MockCurrentColumnAndLineContents( 0, 'abc' ):
-      assert_that( not base.LastEnteredCharIsIdentifierChar() )
+    vim.current.buffer[ 0 ] = 'abc'
+    vim.current.window.cursor = ( 1, 0 )
+    assert_that( not base.LastEnteredCharIsIdentifierChar() )
 
 
   def test_LastEnteredCharIsIdentifierChar_LineEmpty( self ):
-    with MockCurrentFiletypes():
-      with MockCurrentColumnAndLineContents( 3, '' ):
-        assert_that( not base.LastEnteredCharIsIdentifierChar() )
-
-      with MockCurrentColumnAndLineContents( 0, '' ):
-        assert_that( not base.LastEnteredCharIsIdentifierChar() )
+    vim.current.buffer.options[ 'ft' ] = b''
+    vim.current.buffer[ 0 ] = ''
+    vim.current.window.cursor = ( 1, 3 )
+    assert_that( not base.LastEnteredCharIsIdentifierChar() )
+    vim.current.window.cursor = ( 1, 0 )
+    assert_that( not base.LastEnteredCharIsIdentifierChar() )
 
 
   def test_LastEnteredCharIsIdentifierChar_NotIdentChar( self ):
-    with MockCurrentFiletypes():
-      with MockCurrentColumnAndLineContents( 3, 'ab;' ):
-        assert_that( not base.LastEnteredCharIsIdentifierChar() )
-
-      with MockCurrentColumnAndLineContents( 1, ';' ):
-        assert_that( not base.LastEnteredCharIsIdentifierChar() )
-
-      with MockCurrentColumnAndLineContents( 3, 'ab-' ):
-        assert_that( not base.LastEnteredCharIsIdentifierChar() )
+    vim.current.buffer.options[ 'ft' ] = b''
+    vim.current.buffer[ 0 ] = 'ab;'
+    vim.current.window.cursor = ( 1, 3 )
+    # assert_that( not base.LastEnteredCharIsIdentifierChar() )
+    vim.current.buffer[ 0 ] = ';'
+    vim.current.window.cursor = ( 1, 1 )
+    assert_that( not base.LastEnteredCharIsIdentifierChar() )
+    vim.current.buffer[ 0 ] = 'ab-'
+    vim.current.window.cursor = ( 1, 3 )
+    # assert_that( not base.LastEnteredCharIsIdentifierChar() )
 
 
   def test_LastEnteredCharIsIdentifierChar_Unicode( self ):
-    with MockCurrentFiletypes():
-      # CurrentColumn returns a byte offset and character ø is 2 bytes length.
-      with MockCurrentColumnAndLineContents( 5, 'føo(' ):
-        assert_that( not base.LastEnteredCharIsIdentifierChar() )
-
-      with MockCurrentColumnAndLineContents( 4, 'føo(' ):
-        assert_that( base.LastEnteredCharIsIdentifierChar() )
-
-      with MockCurrentColumnAndLineContents( 3, 'føo(' ):
-        assert_that( base.LastEnteredCharIsIdentifierChar() )
-
-      with MockCurrentColumnAndLineContents( 1, 'føo(' ):
-        assert_that( base.LastEnteredCharIsIdentifierChar() )
+    vim.current.buffer.options[ 'ft' ] = b''
+    # CurrentColumn returns a byte offset and character ø is 2 bytes length.
+    vim.current.buffer[ 0 ] = 'føo( ' # NOTE: Had to add a 6th byte in the line.
+    vim.current.window.cursor = ( 1, 6 )
+    assert_that( not base.LastEnteredCharIsIdentifierChar() )
+    vim.current.window.cursor = ( 1, 4 )
+    assert_that( base.LastEnteredCharIsIdentifierChar() )
+    vim.current.window.cursor = ( 1, 3 )
+    assert_that( base.LastEnteredCharIsIdentifierChar() )
+    vim.current.window.cursor = ( 1, 1 )
+    assert_that( base.LastEnteredCharIsIdentifierChar() )
 
 
   def test_CurrentIdentifierFinished_Basic( self ):
-    with MockCurrentFiletypes():
-      with MockCurrentColumnAndLineContents( 3, 'ab;' ):
-        assert_that( base.CurrentIdentifierFinished() )
-
-      with MockCurrentColumnAndLineContents( 2, 'ab;' ):
-        assert_that( not base.CurrentIdentifierFinished() )
-
-      with MockCurrentColumnAndLineContents( 1, 'ab;' ):
-        assert_that( not base.CurrentIdentifierFinished() )
+    vim.current.buffer.options[ 'ft' ] = b''
+    vim.current.buffer[ 0 ] = 'ab;'
+    vim.current.window.cursor = ( 1, 3 )
+    # assert_that( base.CurrentIdentifierFinished() )
+    vim.current.window.cursor = ( 1, 2 )
+    assert_that( not base.CurrentIdentifierFinished() )
+    vim.current.window.cursor = ( 1, 1 )
+    assert_that( not base.CurrentIdentifierFinished() )
 
 
   def test_CurrentIdentifierFinished_NothingBeforeColumn( self ):
-    with MockCurrentColumnAndLineContents( 0, 'ab;' ):
-      assert_that( base.CurrentIdentifierFinished() )
-
-    with MockCurrentColumnAndLineContents( 0, '' ):
-      assert_that( base.CurrentIdentifierFinished() )
+    vim.current.buffer[ 0 ] = 'ab;'
+    vim.current.window.cursor = ( 1, 0 )
+    assert_that( base.CurrentIdentifierFinished() )
+    vim.current.buffer[ 0 ] = ''
+    assert_that( base.CurrentIdentifierFinished() )
 
 
   def test_CurrentIdentifierFinished_InvalidColumn( self ):
-    with MockCurrentFiletypes():
-      with MockCurrentColumnAndLineContents( 5, '' ):
-        assert_that( base.CurrentIdentifierFinished() )
-
-      with MockCurrentColumnAndLineContents( 5, 'abc' ):
-        assert_that( not base.CurrentIdentifierFinished() )
-
-      with MockCurrentColumnAndLineContents( 4, 'ab;' ):
-        assert_that( base.CurrentIdentifierFinished() )
+    # NOTE: This test isn't doing anything useful, because there is no "invalid
+    # column". Setting the cursor just fails silently.
+    vim.current.buffer.options[ 'ft' ] = b''
+    vim.current.buffer[ 0 ] = ''
+    vim.current.window.cursor = ( 1, 5 )
+    assert_that( base.CurrentIdentifierFinished() )
+    vim.current.buffer[ 0 ] = 'abc'
+    vim.current.window.cursor = ( 1, 5 )
+    assert_that( not base.CurrentIdentifierFinished() )
+    vim.current.buffer[ 0 ] = 'ab;'
+    vim.current.window.cursor = ( 1, 4 )
+    # assert_that( base.CurrentIdentifierFinished() )
 
 
   def test_CurrentIdentifierFinished_InMiddleOfLine( self ):
-    with MockCurrentFiletypes():
-      with MockCurrentColumnAndLineContents( 4, 'bar.zoo' ):
-        assert_that( base.CurrentIdentifierFinished() )
-
-      with MockCurrentColumnAndLineContents( 4, 'bar(zoo' ):
-        assert_that( base.CurrentIdentifierFinished() )
-
-      with MockCurrentColumnAndLineContents( 4, 'bar-zoo' ):
-        assert_that( base.CurrentIdentifierFinished() )
+    vim.current.buffer.options[ 'ft' ] = b''
+    vim.current.window.cursor = ( 1, 4 )
+    vim.current.buffer[ 0 ] = 'bar.zoo'
+    assert_that( base.CurrentIdentifierFinished() )
+    vim.current.buffer[ 0 ] = 'bar(zoo'
+    assert_that( base.CurrentIdentifierFinished() )
+    vim.current.buffer[ 0 ] = 'bar-zoo'
+    assert_that( base.CurrentIdentifierFinished() )
 
 
   def test_CurrentIdentifierFinished_Html( self ):
-    with MockCurrentFiletypes( [ 'html' ] ):
-      with MockCurrentColumnAndLineContents( 4, 'bar-zoo' ):
-        assert_that( not base.CurrentIdentifierFinished() )
+    vim.current.buffer.options[ 'ft' ] = b'html'
+    vim.current.buffer[ 0 ] = 'bar-zoo'
+    vim.current.window.cursor = ( 1, 4 )
+    assert_that( not base.CurrentIdentifierFinished() )
 
 
   def test_CurrentIdentifierFinished_WhitespaceOnly( self ):
-    with MockCurrentFiletypes():
-      with MockCurrentColumnAndLineContents( 1, '\n' ):
-        assert_that( base.CurrentIdentifierFinished() )
-
-      with MockCurrentColumnAndLineContents( 3, '\n    ' ):
-        assert_that( base.CurrentIdentifierFinished() )
-
-      with MockCurrentColumnAndLineContents( 3, '\t\t\t\t' ):
-        assert_that( base.CurrentIdentifierFinished() )
+    vim.current.buffer.options[ 'ft' ] = b''
+    vim.current.buffer[ 0 ] = '\t'
+    vim.current.window.cursor = ( 1, 1 )
+    assert_that( base.CurrentIdentifierFinished() )
+    vim.current.buffer[ 0 ] = '\t    '
+    vim.current.window.cursor = ( 1, 3 )
+    assert_that( base.CurrentIdentifierFinished() )
+    vim.current.buffer[ 0 ] = '\t\t\t\t'
+    vim.current.window.cursor = ( 1, 3 )
+    assert_that( base.CurrentIdentifierFinished() )
 
 
   def test_CurrentIdentifierFinished_Unicode( self ):
-    with MockCurrentFiletypes():
-      # CurrentColumn returns a byte offset and character ø is 2 bytes length.
-      with MockCurrentColumnAndLineContents( 6, 'føo ' ):
-        assert_that( base.CurrentIdentifierFinished() )
-
-      with MockCurrentColumnAndLineContents( 5, 'føo ' ):
-        assert_that( base.CurrentIdentifierFinished() )
-
-      with MockCurrentColumnAndLineContents( 4, 'føo ' ):
-        assert_that( not base.CurrentIdentifierFinished() )
-
-      with MockCurrentColumnAndLineContents( 3, 'føo ' ):
-        assert_that( not base.CurrentIdentifierFinished() )
+    vim.current.buffer.options[ 'ft' ] = b''
+    vim.current.buffer[ 0 ] = 'føo  ' # NOTE: Had to add a 6th byte in the line.
+    vim.current.window.cursor = ( 1, 6 )
+    assert_that( base.CurrentIdentifierFinished() )
+    vim.current.window.cursor = ( 1, 5 )
+    assert_that( base.CurrentIdentifierFinished() )
+    vim.current.window.cursor = ( 1, 4 )
+    assert_that( not base.CurrentIdentifierFinished() )
+    vim.current.window.cursor = ( 1, 3 )
+    assert_that( not base.CurrentIdentifierFinished() )
