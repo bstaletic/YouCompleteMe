@@ -27,6 +27,7 @@ from ycm import vimsupport
 from ycmd.utils import ToBytes, GetCurrentDirectory, ToUnicode
 from ycmd.hmac_utils import CreateRequestHmac, CreateHmac
 from ycmd.responses import ServerError, UnknownExtraConf
+from copy import deepcopy
 
 HTTP_SERVER_ERROR = 500
 
@@ -163,7 +164,22 @@ class BaseRequest:
         headers = BaseRequest._ExtraHeaders( method,
                                              request_uri,
                                              sent_data )
-        _logger.debug( 'POST %s\n%s\n%s', request_uri, headers, sent_data )
+        if _logger.isEnabledFor( logging.DEBUG ):
+          if isinstance( data, dict ) and 'file_data' in data:
+            filtered_data = dict( data )
+            file_data = filtered_data.pop( 'file_data' )
+            # Filter the file contents from the log. This is a lot of data and
+            # might be sensitive. Mostly this just makes debugging easier
+            # because we can see them messages rather than jsut walls of ecaped
+            # file data.
+            filtered_data[ 'file_data' ] = {
+              filepath: {
+                'filetypes': data[ 'filetypes' ],
+                'contents': '...',
+              }
+              for filepath, data in file_data.items()
+            }
+          _logger.debug( 'POST %s\n%s\n%s\n', request_uri, headers, filtered_data )
       else:
         headers = BaseRequest._ExtraHeaders( method, request_uri )
         if payload:
@@ -253,8 +269,11 @@ def _JsonFromFuture( future ):
   try:
     response = future.result()
     response_text = response.read()
+    _logger.debug("RX: %s", response_text)
+
     _ValidateResponseObject( response, response_text )
     response.close()
+
 
     if response_text:
       return json.loads( response_text )
